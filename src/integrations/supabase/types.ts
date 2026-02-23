@@ -14,21 +14,248 @@ export type Database = {
   }
   public: {
     Tables: {
+      doctor_patient_links: {
+        Row: {
+          created_at: string
+          doctor_user_id: string
+          id: string
+          patient_user_id: string
+          status: Database["public"]["Enums"]["link_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_user_id: string
+          id?: string
+          patient_user_id: string
+          status?: Database["public"]["Enums"]["link_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doctor_user_id?: string
+          id?: string
+          patient_user_id?: string
+          status?: Database["public"]["Enums"]["link_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      entries: {
+        Row: {
+          created_at: string
+          entry_date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_date: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      entry_summaries: {
+        Row: {
+          block1_sum: number | null
+          block2_sum: number | null
+          block3_sum: number | null
+          block4_sum: number | null
+          block5_sum: number | null
+          block6_sum: number | null
+          block7_sum: number | null
+          entry_id: string
+          high_risk_sleep: boolean | null
+          sustained_activation: boolean | null
+          total_risk_blocks_count: number | null
+        }
+        Insert: {
+          block1_sum?: number | null
+          block2_sum?: number | null
+          block3_sum?: number | null
+          block4_sum?: number | null
+          block5_sum?: number | null
+          block6_sum?: number | null
+          block7_sum?: number | null
+          entry_id: string
+          high_risk_sleep?: boolean | null
+          sustained_activation?: boolean | null
+          total_risk_blocks_count?: number | null
+        }
+        Update: {
+          block1_sum?: number | null
+          block2_sum?: number | null
+          block3_sum?: number | null
+          block4_sum?: number | null
+          block5_sum?: number | null
+          block6_sum?: number | null
+          block7_sum?: number | null
+          entry_id?: string
+          high_risk_sleep?: boolean | null
+          sustained_activation?: boolean | null
+          total_risk_blocks_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_summaries_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: true
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipsrt_anchors: {
+        Row: {
+          bedtime: string | null
+          entry_id: string
+          first_meal_time: string | null
+          last_meal_time: string | null
+          main_social_anchor_time: string | null
+          wake_time: string | null
+        }
+        Insert: {
+          bedtime?: string | null
+          entry_id: string
+          first_meal_time?: string | null
+          last_meal_time?: string | null
+          main_social_anchor_time?: string | null
+          wake_time?: string | null
+        }
+        Update: {
+          bedtime?: string | null
+          entry_id?: string
+          first_meal_time?: string | null
+          last_meal_time?: string | null
+          main_social_anchor_time?: string | null
+          wake_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipsrt_anchors_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: true
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ipsrt_ratings: {
+        Row: {
+          entry_id: string
+          rating_q1: number | null
+          rating_q2: number | null
+          rating_q3: number | null
+          rating_q4: number | null
+          rhythm_stability_score: number | null
+        }
+        Insert: {
+          entry_id: string
+          rating_q1?: number | null
+          rating_q2?: number | null
+          rating_q3?: number | null
+          rating_q4?: number | null
+          rhythm_stability_score?: number | null
+        }
+        Update: {
+          entry_id?: string
+          rating_q1?: number | null
+          rating_q2?: number | null
+          rating_q3?: number | null
+          rating_q4?: number | null
+          rhythm_stability_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ipsrt_ratings_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: true
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mania_answers: {
+        Row: {
+          block_id: number
+          entry_id: string
+          id: string
+          question_id: number
+          score: number
+        }
+        Insert: {
+          block_id: number
+          entry_id: string
+          id?: string
+          question_id: number
+          score?: number
+        }
+        Update: {
+          block_id?: number
+          entry_id?: string
+          id?: string
+          question_id?: number
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mania_answers_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
+          doctor_code: string | null
           full_name: string | null
           id: string
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          doctor_code?: string | null
           full_name?: string | null
           id: string
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          doctor_code?: string | null
           full_name?: string | null
           id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -37,10 +264,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_doctor_code: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "doctor" | "patient"
+      link_status: "pending" | "active" | "revoked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -167,6 +402,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["doctor", "patient"],
+      link_status: ["pending", "active", "revoked"],
+    },
   },
 } as const
