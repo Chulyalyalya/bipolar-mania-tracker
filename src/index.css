@@ -38,7 +38,7 @@
     --input: 200 10% 82%;
     --ring: 200 12% 78%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     /* Alert colors as CSS vars */
     --alert-red: 0 100% 50%;
