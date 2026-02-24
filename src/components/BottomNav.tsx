@@ -1,10 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Activity, Settings } from 'lucide-react';
+import { Home, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
   { to: '/', icon: Home, label: 'Главная' },
-  { to: '/ipsrt', icon: Activity, label: 'IPSRT' },
   { to: '/settings', icon: Settings, label: 'Настройки' },
 ];
 
@@ -18,7 +17,7 @@ const BottomNav = () => (
         className={({ isActive }) =>
           cn(
             'flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors',
-            isActive ? 'text-primary' : 'text-muted-foreground'
+            isActive ? 'text-primary-foreground font-medium' : 'text-muted-foreground'
           )
         }
       >

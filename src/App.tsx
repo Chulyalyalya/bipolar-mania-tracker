@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import ResetPassword from "./pages/ResetPassword";
 import PatientHome from "./pages/PatientHome";
+import BlockDetail from "./pages/BlockDetail";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import GlobalHeader from "./components/GlobalHeader";
@@ -28,7 +29,6 @@ const AppRoutes = () => {
     );
   }
 
-  // Not logged in
   if (!session) {
     return (
       <Routes>
@@ -39,7 +39,6 @@ const AppRoutes = () => {
     );
   }
 
-  // Logged in but no role → onboarding
   if (!role) {
     return (
       <Routes>
@@ -49,7 +48,6 @@ const AppRoutes = () => {
     );
   }
 
-  // Patient layout
   if (role === 'patient') {
     return (
       <>
@@ -58,6 +56,7 @@ const AppRoutes = () => {
         <main className="min-h-[calc(100vh-120px)]">
           <Routes>
             <Route path="/" element={<PatientHome />} />
+            <Route path="/block/:blockId" element={<BlockDetail />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -67,7 +66,7 @@ const AppRoutes = () => {
     );
   }
 
-  // Doctor layout (placeholder for now)
+  // Doctor layout
   return (
     <>
       <GlobalHeader />
