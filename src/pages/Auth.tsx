@@ -28,57 +28,57 @@ const Auth = () => {
         password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: fullName },
-        },
+          data: { full_name: fullName }
+        }
       });
       if (error) throw error;
 
       // If user was created and confirmed (or auto-confirmed), set up profile + role
       if (data.user) {
         // Update profile with full name
-        await supabase
-          .from('profiles')
-          .update({ full_name: fullName })
-          .eq('id', data.user.id);
+        await supabase.
+        from('profiles').
+        update({ full_name: fullName }).
+        eq('id', data.user.id);
 
         // Assign role
-        await supabase
-          .from('user_roles')
-          .insert({ user_id: data.user.id, role: selectedRole });
+        await supabase.
+        from('user_roles').
+        insert({ user_id: data.user.id, role: selectedRole });
       }
 
       if (data.session) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Auto-confirmed — will redirect via auth state change
-      } else {
-        toast.success('Проверьте почту для подтверждения');
-      }
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleForgot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      } else {toast.success('Проверьте почту для подтверждения');}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleLogin = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.signInWithPassword({ email, password });if (error) throw error;} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleForgot = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password`
+        });
       if (error) throw error;
       toast.success('Ссылка для сброса отправлена на почту');
     } catch (err: any) {
@@ -91,7 +91,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.origin }
     });
     if (error) toast.error(error.message);
   };
@@ -109,10 +109,10 @@ const Auth = () => {
                   id="forgot-email"
                   type="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="mt-1 rounded-xl"
-                />
+                  className="mt-1 rounded-xl" />
+
               </div>
               <Button type="submit" className="w-full rounded-xl" disabled={loading}>
                 Отправить ссылку
@@ -120,15 +120,15 @@ const Auth = () => {
               <button
                 type="button"
                 className="text-sm text-muted-foreground underline"
-                onClick={() => setShowForgot(false)}
-              >
+                onClick={() => setShowForgot(false)}>
+
                 Назад
               </button>
             </form>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -155,22 +155,22 @@ const Auth = () => {
                 type="button"
                 onClick={() => setSelectedRole('doctor')}
                 className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                  selectedRole === 'doctor'
-                    ? 'border-primary bg-primary/10 text-foreground'
-                    : 'border-border bg-background text-muted-foreground hover:border-primary/50'
-                }`}
-              >
+                selectedRole === 'doctor' ?
+                'border-primary bg-primary/10 text-foreground' :
+                'border-border bg-background text-muted-foreground hover:border-primary/50'}`
+                }>
+
                 Психолог / Психиатр
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedRole('patient')}
                 className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                  selectedRole === 'patient'
-                    ? 'border-primary bg-primary/10 text-foreground'
-                    : 'border-border bg-background text-muted-foreground hover:border-primary/50'
-                }`}
-              >
+                selectedRole === 'patient' ?
+                'border-primary bg-primary/10 text-foreground' :
+                'border-border bg-background text-muted-foreground hover:border-primary/50'}`
+                }>
+
                 Пациент
               </button>
             </div>
@@ -182,113 +182,113 @@ const Auth = () => {
               type="button"
               onClick={() => setTab('register')}
               className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                tab === 'register'
-                  ? 'bg-card text-foreground shadow-sm'
-                  : 'text-muted-foreground'
-              }`}
-            >
+              tab === 'register' ?
+              'bg-card text-foreground shadow-sm' :
+              'text-muted-foreground'}`
+              }>
+
               Регистрация
             </button>
             <button
               type="button"
               onClick={() => setTab('login')}
               className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                tab === 'login'
-                  ? 'bg-card text-foreground shadow-sm'
-                  : 'text-muted-foreground'
-              }`}
-            >
+              tab === 'login' ?
+              'bg-card text-foreground shadow-sm' :
+              'text-muted-foreground'}`
+              }>
+
               Вход
             </button>
           </div>
 
           {/* Register form */}
-          {tab === 'register' && (
-            <form onSubmit={handleRegister} className="space-y-4">
+          {tab === 'register' &&
+          <form onSubmit={handleRegister} className="space-y-4">
               <div>
                 <Label htmlFor="reg-name" className="text-sm text-muted-foreground">Полное имя</Label>
                 <Input
-                  id="reg-name"
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  placeholder="Имя Фамилия"
-                  required
-                  className="mt-1 rounded-xl"
-                />
+                id="reg-name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Имя Фамилия"
+                required
+                className="mt-1 rounded-xl" />
+
               </div>
               <div>
                 <Label htmlFor="reg-email" className="text-sm text-muted-foreground">Email</Label>
                 <Input
-                  id="reg-email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="mt-1 rounded-xl"
-                />
+                id="reg-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1 rounded-xl" />
+
               </div>
               <div>
                 <Label htmlFor="reg-password" className="text-sm text-muted-foreground">Пароль</Label>
                 <Input
-                  id="reg-password"
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                  className="mt-1 rounded-xl"
-                />
+                id="reg-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                className="mt-1 rounded-xl" />
+
                 <p className="mt-1 text-xs text-muted-foreground">Минимум 8 символов</p>
               </div>
               <Button
-                type="submit"
-                className="w-full rounded-xl"
-                disabled={loading || !selectedRole}
-              >
+              type="submit"
+              className="w-full rounded-xl"
+              disabled={loading || !selectedRole}>
+
                 {!selectedRole ? 'Сначала выберите роль' : 'Создать аккаунт'}
               </Button>
             </form>
-          )}
+          }
 
           {/* Login form */}
-          {tab === 'login' && (
-            <form onSubmit={handleLogin} className="space-y-4">
+          {tab === 'login' &&
+          <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <Label htmlFor="login-email" className="text-sm text-muted-foreground">Email</Label>
                 <Input
-                  id="login-email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="mt-1 rounded-xl"
-                />
+                id="login-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1 rounded-xl" />
+
               </div>
               <div>
                 <Label htmlFor="login-password" className="text-sm text-muted-foreground">Пароль</Label>
                 <Input
-                  id="login-password"
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  className="mt-1 rounded-xl"
-                />
+                id="login-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1 rounded-xl" />
+
               </div>
               <Button type="submit" className="w-full rounded-xl" disabled={loading}>
                 Войти
               </Button>
               <div className="text-center">
                 <button
-                  type="button"
-                  className="text-sm text-muted-foreground underline"
-                  onClick={() => setShowForgot(true)}
-                >
+                type="button"
+                className="text-sm text-muted-foreground underline"
+                onClick={() => setShowForgot(true)}>
+
                   Забыли пароль?
                 </button>
               </div>
             </form>
-          )}
+          }
 
           {/* Google sign-in */}
           <div className="relative">
@@ -296,21 +296,21 @@ const Auth = () => {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-2 text-muted-foreground">или</span>
+              <span className="bg-card px-2 text-muted-foreground">уже есть аккаунт? 
+              </span>
             </div>
           </div>
-          <Button
-            variant="outline"
-            className="w-full rounded-xl"
-            onClick={handleGoogle}
-            type="button"
-          >
+          <Button variant="outline"
+          className="w-full rounded-xl"
+          onClick={handleGoogle}
+          type="button">
+
             Продолжить с Google
           </Button>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Auth;
