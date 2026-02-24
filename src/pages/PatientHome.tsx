@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BLOCKS } from '@/lib/questions';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import type { EntrySummary } from '@/types';
 
 const PatientHome = () => {
@@ -43,16 +44,20 @@ const PatientHome = () => {
   };
 
   return (
-    <div className="space-y-3 p-4 pb-20">
-      <h2 className="text-sm font-medium text-muted-foreground">Mania Checker</h2>
-      <div className="grid gap-2">
+    <div className="p-4 pb-20">
+      <h2 className="text-sm font-medium text-muted-foreground mb-3">Mania Checker</h2>
+      <div className="grid grid-cols-2 gap-3">
         {BLOCKS.map((block) => {
           const sum = getBlockSum(block.id);
           const isRisk = sum !== null && sum > 4;
+          const isFullWidth = block.id === 7;
           return (
             <Card
               key={block.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className={cn(
+                'cursor-pointer hover:shadow-md transition-shadow',
+                isFullWidth && 'col-span-2'
+              )}
               onClick={() => navigate(`/block/${block.id}`)}
             >
               <CardContent className="flex items-center justify-between p-4">
@@ -78,19 +83,8 @@ const PatientHome = () => {
           );
         })}
       </div>
-
-      <h2 className="text-sm font-medium text-muted-foreground mt-4">IPSRT Ритмы</h2>
-      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/ipsrt')}>
-        <CardContent className="flex items-center justify-between p-4">
-          <p className="text-sm font-medium">Ритм стабильности</p>
-          <div className="h-3 w-3 rounded-full bg-muted" />
-        </CardContent>
-      </Card>
     </div>
   );
 };
-
-// Need cn import
-import { cn } from '@/lib/utils';
 
 export default PatientHome;
