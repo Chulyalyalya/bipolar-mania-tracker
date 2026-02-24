@@ -76,58 +76,58 @@ const Auth = () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Auto-confirmed — will redirect via auth state change
-      } else {toast.success('Проверьте почту для подтверждения');}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleLogin = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.signInWithPassword({ email, password });if (error) throw error;} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleForgot = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password`
-        });
-      if (error) throw error;
-      toast.success('Ссылка для сброса отправлена на почту');
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin }
-    });
-    if (error) toast.error(error.message);
-  };
-
-  if (showForgot) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      } else {toast.success('Проверьте почту для подтверждения');}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleLogin = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.signInWithPassword({ email, password });if (error) throw error;} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleForgot = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });if (error) throw error;toast.success('Ссылка для сброса отправлена на почту');} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleGoogle = async () => {const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });if (error) toast.error(error.message);};if (showForgot) {return <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md rounded-2xl border-border/50 bg-card shadow-md">
           <CardContent className="p-8">
             <h2 className="text-lg font-medium text-foreground mb-4">Сброс пароля</h2>
             <form onSubmit={handleForgot} className="space-y-4">
               <div>
                 <Label htmlFor="forgot-email" className="text-sm text-muted-foreground">Email</Label>
-                <Input
-                  id="forgot-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1 rounded-xl" />
+                <Input id="forgot-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1 rounded-xl" />
 
               </div>
               <Button type="submit" className="w-full rounded-xl" disabled={loading}>
                 Отправить ссылку
               </Button>
               <button
-                type="button"
-                className="text-sm text-muted-foreground underline"
-                onClick={() => setShowForgot(false)}>
+              type="button"
+              className="text-sm text-muted-foreground underline"
+              onClick={() => setShowForgot(false)}>
 
                 Назад
               </button>
             </form>
           </CardContent>
         </Card>
-      </div>);
+      </div>;
 
   }
 
@@ -137,8 +137,8 @@ const Auth = () => {
         <CardContent className="p-8 space-y-6">
           {/* Branding */}
           <div className="text-center space-y-1">
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">
-              My Balance Place
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Bipolar mania tracker
+
             </h1>
             <p className="text-sm text-muted-foreground">
               Clinical daily tracking. Private by default.
