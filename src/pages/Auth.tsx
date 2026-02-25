@@ -56,8 +56,8 @@ const Auth = () => {
         password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: fullName },
-        },
+          data: { full_name: fullName }
+        }
       });
       if (error) throw error;
 
@@ -67,40 +67,40 @@ const Auth = () => {
       }
 
       if (data.session) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Auto-confirmed — will redirect via auth state change
-      } else {
-        setConfirmationEmail(email);
-        setShowConfirmation(true);
-      }
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleForgot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      toast.success('Ссылка для сброса отправлена на почту');
+      } else {setConfirmationEmail(email);setShowConfirmation(true);}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleLogin = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.signInWithPassword({ email, password });if (error) throw error;} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}};const handleForgot = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });if (error) throw error;toast.success('Ссылка для сброса отправлена на почту');
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -111,13 +111,13 @@ const Auth = () => {
   const handleGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.origin }
     });
     if (error) toast.error(error.message);
   };
 
   const errorBorder = (field: keyof FieldErrors) =>
-    errors[field] ? 'border-destructive ring-1 ring-destructive/30' : '';
+  errors[field] ? 'border-destructive ring-1 ring-destructive/30' : '';
 
   // Email confirmation screen
   if (showConfirmation) {
@@ -137,14 +137,14 @@ const Auth = () => {
               onClick={() => {
                 setShowConfirmation(false);
                 setTab('login');
-              }}
-            >
+              }}>
+
               Перейти ко входу
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   // Forgot password screen
@@ -168,8 +168,8 @@ const Auth = () => {
             </form>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -178,59 +178,59 @@ const Auth = () => {
         <CardContent className="p-8 space-y-6">
           {/* Branding */}
           <div className="text-center space-y-1">
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">My Balance Place</h1>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Bipolar Mania Treacker
+            </h1>
             <p className="text-sm text-muted-foreground">Clinical daily tracking. Private by default.</p>
           </div>
 
           {/* Tabs */}
           <div className="flex rounded-xl bg-muted p-1">
-            <button
-              type="button"
-              onClick={() => { setTab('register'); setErrors({}); }}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                tab === 'register' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
-              }`}
-            >
+            <button type="button"
+            onClick={() => {setTab('register');setErrors({});}}
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+            tab === 'register' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`
+            }>
+
               Регистрация
             </button>
             <button
               type="button"
-              onClick={() => { setTab('login'); setErrors({}); }}
+              onClick={() => {setTab('login');setErrors({});}}
               className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-                tab === 'login' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
-              }`}
-            >
+              tab === 'login' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`
+              }>
+
               Вход
             </button>
           </div>
 
           {/* ── REGISTER ── */}
-          {tab === 'register' && (
-            <form onSubmit={handleRegister} className="space-y-4">
+          {tab === 'register' &&
+          <form onSubmit={handleRegister} className="space-y-4">
               {/* Role selector */}
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Выберите роль</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    type="button"
-                    onClick={() => { setSelectedRole('doctor'); clearError('role'); }}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      selectedRole === 'doctor'
-                        ? 'border-primary bg-primary/10 text-foreground'
-                        : `border-border bg-background text-muted-foreground hover:border-primary/50 ${errors.role ? 'border-destructive' : ''}`
-                    }`}
-                  >
+                  type="button"
+                  onClick={() => {setSelectedRole('doctor');clearError('role');}}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                  selectedRole === 'doctor' ?
+                  'border-primary bg-primary/10 text-foreground' :
+                  `border-border bg-background text-muted-foreground hover:border-primary/50 ${errors.role ? 'border-destructive' : ''}`}`
+                  }>
+
                     Психолог / Психиатр
                   </button>
                   <button
-                    type="button"
-                    onClick={() => { setSelectedRole('patient'); clearError('role'); }}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      selectedRole === 'patient'
-                        ? 'border-primary bg-primary/10 text-foreground'
-                        : `border-border bg-background text-muted-foreground hover:border-primary/50 ${errors.role ? 'border-destructive' : ''}`
-                    }`}
-                  >
+                  type="button"
+                  onClick={() => {setSelectedRole('patient');clearError('role');}}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                  selectedRole === 'patient' ?
+                  'border-primary bg-primary/10 text-foreground' :
+                  `border-border bg-background text-muted-foreground hover:border-primary/50 ${errors.role ? 'border-destructive' : ''}`}`
+                  }>
+
                     Пациент
                   </button>
                 </div>
@@ -240,40 +240,40 @@ const Auth = () => {
               <div>
                 <Label htmlFor="reg-name" className="text-sm text-muted-foreground">Полное имя</Label>
                 <Input
-                  id="reg-name"
-                  value={fullName}
-                  onChange={(e) => { setFullName(e.target.value); clearError('fullName'); }}
-                  placeholder="Имя Фамилия"
-                  className={`mt-1 rounded-xl ${errorBorder('fullName')}`}
-                />
+                id="reg-name"
+                value={fullName}
+                onChange={(e) => {setFullName(e.target.value);clearError('fullName');}}
+                placeholder="Имя Фамилия"
+                className={`mt-1 rounded-xl ${errorBorder('fullName')}`} />
+
                 {errors.fullName && <p className="mt-1 text-xs text-destructive">{errors.fullName}</p>}
               </div>
               <div>
                 <Label htmlFor="reg-email" className="text-sm text-muted-foreground">Email</Label>
                 <Input
-                  id="reg-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
-                  className={`mt-1 rounded-xl ${errorBorder('email')}`}
-                />
+                id="reg-email"
+                type="email"
+                value={email}
+                onChange={(e) => {setEmail(e.target.value);clearError('email');}}
+                className={`mt-1 rounded-xl ${errorBorder('email')}`} />
+
                 {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
               </div>
               <div>
                 <Label htmlFor="reg-password" className="text-sm text-muted-foreground">Пароль</Label>
                 <Input
-                  id="reg-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
-                  minLength={8}
-                  className={`mt-1 rounded-xl ${errorBorder('password')}`}
-                />
-                {errors.password ? (
-                  <p className="mt-1 text-xs text-destructive">{errors.password}</p>
-                ) : (
-                  <p className="mt-1 text-xs text-muted-foreground">Минимум 8 символов</p>
-                )}
+                id="reg-password"
+                type="password"
+                value={password}
+                onChange={(e) => {setPassword(e.target.value);clearError('password');}}
+                minLength={8}
+                className={`mt-1 rounded-xl ${errorBorder('password')}`} />
+
+                {errors.password ?
+              <p className="mt-1 text-xs text-destructive">{errors.password}</p> :
+
+              <p className="mt-1 text-xs text-muted-foreground">Минимум 8 символов</p>
+              }
               </div>
 
               <Button type="submit" className="w-full rounded-xl" disabled={loading}>
@@ -282,16 +282,16 @@ const Auth = () => {
 
               <p className="text-center text-sm text-muted-foreground">
                 Уже есть аккаунт?{' '}
-                <button type="button" className="text-primary underline" onClick={() => { setTab('login'); setErrors({}); }}>
+                <button type="button" className="text-primary underline" onClick={() => {setTab('login');setErrors({});}}>
                   Войти
                 </button>
               </p>
             </form>
-          )}
+          }
 
           {/* ── LOGIN ── */}
-          {tab === 'login' && (
-            <form onSubmit={handleLogin} className="space-y-4">
+          {tab === 'login' &&
+          <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <Label htmlFor="login-email" className="text-sm text-muted-foreground">Email</Label>
                 <Input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1 rounded-xl" />
@@ -309,7 +309,7 @@ const Auth = () => {
                 </button>
               </div>
             </form>
-          )}
+          }
 
           {/* Google sign-in */}
           <Button variant="outline" className="w-full rounded-xl" onClick={handleGoogle} type="button">
@@ -317,8 +317,8 @@ const Auth = () => {
           </Button>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Auth;
