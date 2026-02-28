@@ -10,6 +10,8 @@ import Onboarding from "./pages/Onboarding";
 import ResetPassword from "./pages/ResetPassword";
 import PatientHome from "./pages/PatientHome";
 import BlockDetail from "./pages/BlockDetail";
+import DoctorHome from "./pages/DoctorHome";
+import PatientDetailDoctor from "./pages/PatientDetailDoctor";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import GlobalHeader from "./components/GlobalHeader";
@@ -72,11 +74,13 @@ const AppRoutes = () => {
       <GlobalHeader />
       <main className="min-h-screen">
         <Routes>
-          <Route path="/" element={<div className="p-4"><p className="text-sm text-muted-foreground">Панель врача (скоро)</p></div>} />
+          <Route path="/" element={<DoctorHome />} />
+          <Route path="/patient/:patientId" element={<PatientDetailDoctor />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <BottomNav />
     </>
   );
 };
