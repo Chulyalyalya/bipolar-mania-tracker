@@ -92,6 +92,7 @@ const Settings = () => {
       {role === 'patient' && (
         <>
           <button
+            type="button"
             onClick={() => { console.log('OPEN_ADD_DOCTOR'); setSheetOpen(true); }}
             className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
@@ -103,6 +104,7 @@ const Settings = () => {
       )}
 
       <button
+        type="button"
         onClick={() => { console.log('LOGOUT'); signOut(); }}
         className="flex w-full items-center justify-center rounded-2xl border border-border/30 bg-card/40 backdrop-blur-sm px-5 py-3 text-sm font-medium text-foreground transition-all hover:bg-card/60"
       >
@@ -137,6 +139,7 @@ const Settings = () => {
             </div>
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={handleConnect}
                 disabled={connecting}
                 className="flex-1 rounded-2xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
@@ -144,6 +147,7 @@ const Settings = () => {
                 Подключить
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setSheetOpen(false);
                   setDoctorCode('');

@@ -174,6 +174,7 @@ const PatientExportSection = () => {
         {RANGE_OPTIONS.map((r) => (
           <button
             key={r.key}
+            type="button"
             className={cn(
               'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
               range === r.key
@@ -260,6 +261,7 @@ const PatientExportSection = () => {
 
       {/* Export button */}
       <button
+        type="button"
         onClick={handleExport}
         disabled={exporting || !customValid || noData}
         className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"

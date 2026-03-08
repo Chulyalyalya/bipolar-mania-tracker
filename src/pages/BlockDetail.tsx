@@ -242,7 +242,8 @@ const BlockDetail = () => {
               {[0, 1, 2, 3, 4].map((val) => (
                 <button
                   key={val}
-                  onClick={() => !futureDate && setScore(qIdx, val)}
+                  type="button"
+                  onClick={() => { if (!futureDate) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
                   disabled={futureDate}
                   className={cn(
                     'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all',
@@ -269,6 +270,7 @@ const BlockDetail = () => {
 
       {!futureDate && (
         <button
+          type="button"
           onClick={handleSave}
           disabled={saving}
           className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
@@ -292,13 +294,14 @@ const BlockDetail = () => {
           {RANGES.map((r, i) => (
             <button
               key={r.label}
+              type="button"
               className={cn(
                 'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
                 rangeIdx === i
                   ? 'bg-foreground text-background'
                   : 'bg-card/40 text-muted-foreground hover:bg-card/60 border border-border/30'
               )}
-              onClick={() => setRangeIdx(i)}
+              onClick={() => { console.log('CHART_RANGE', r.label); setRangeIdx(i); }}
             >
               {r.label}
             </button>

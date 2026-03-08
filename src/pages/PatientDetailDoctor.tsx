@@ -93,6 +93,7 @@ const PatientDetailDoctor = () => {
 
   const handleExport = useCallback(async () => {
     if (!patientId) return;
+    console.log('EXPORT_START', { patientId, exportRangeIdx, useCustomRange });
     setExporting(true);
     try {
       let fromDate: string | null = null;
