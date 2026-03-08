@@ -45,6 +45,7 @@ const PatientExportSection = () => {
 
   const handleExport = async () => {
     if (!user) return;
+    console.log('EXPORT_START', { range, customFrom, customTo });
     setExporting(true);
     setNoData(false);
 
