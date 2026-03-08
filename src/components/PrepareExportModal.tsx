@@ -54,7 +54,7 @@ const PrepareExportModal = ({ open, onOpenChange }: Props) => {
 
       const { data: entries } = await supabase
         .from('entries')
-        .select('id, entry_date')
+        .select('id, entry_date, daily_note')
         .eq('user_id', user.id)
         .gte('entry_date', fromDate)
         .lte('entry_date', toDate)
@@ -102,7 +102,6 @@ const PrepareExportModal = ({ open, onOpenChange }: Props) => {
           return row;
         });
 
-        // Add sum row
         const sumRow: (string | number)[] = ['Сумма блока'];
         datesWithData.forEach((date) => {
           const eid = entries.find((e) => e.entry_date === date)?.id;
@@ -117,6 +116,20 @@ const PrepareExportModal = ({ open, onOpenChange }: Props) => {
         const ws = XLSX.utils.aoa_to_sheet(sheetData);
         ws['!cols'] = [{ wch: 60 }, ...datesWithData.map(() => ({ wch: 12 }))];
         XLSX.utils.book_append_sheet(wb, ws, `Блок ${block.id}`);
+      }
+
+      // Notes sheet
+      const notesRows: (string | string[])[] = [['Дата', 'Заметка']];
+      entries.forEach((e) => {
+        const note = (e as any).daily_note;
+        if (note) {
+          notesRows.push([e.entry_date, note]);
+        }
+      });
+      if (notesRows.length > 1) {
+        const notesWs = XLSX.utils.aoa_to_sheet(notesRows);
+        notesWs['!cols'] = [{ wch: 12 }, { wch: 60 }];
+        XLSX.utils.book_append_sheet(wb, notesWs, 'Заметки');
       }
 
       const safeName = (profile?.full_name || 'Patient').replace(/[^a-zA-Zа-яА-Я0-9]/g, '_');
@@ -140,7 +153,6 @@ const PrepareExportModal = ({ open, onOpenChange }: Props) => {
           <SheetDescription>Выберите период и скачайте Excel-файл</SheetDescription>
         </SheetHeader>
         <div className="space-y-4 py-4">
-          {/* Range options */}
           <div className="flex flex-wrap gap-2">
             {RANGES.map((r, i) => (
               <Button
@@ -166,7 +178,6 @@ const PrepareExportModal = ({ open, onOpenChange }: Props) => {
             </Button>
           </div>
 
-          {/* Custom date pickers */}
           {useCustom && (
             <div className="flex gap-2">
               <Popover>
