@@ -76,11 +76,11 @@ const PatientHome = () => {
       )}
 
       {/* Two-column layout */}
-      <div className="flex flex-col md:flex-row gap-4 mt-3">
+      <div className="flex flex-col md:flex-row gap-4 mt-3 md:items-stretch">
         {/* Left column: streak + notes */}
         <div className="w-full md:w-1/4 flex flex-col items-center md:items-stretch gap-3">
           <DonutStreak />
-          <DailyNotes />
+          <DailyNotes className="flex-1" />
         </div>
 
         {/* Right column: blocks */}

@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { isFuture, isToday } from 'date-fns';
 
-const DailyNotes = () => {
+const DailyNotes = ({ className }: { className?: string }) => {
   const { user } = useAuth();
   const { selectedDate, dateStr } = useSelectedDate();
   const [note, setNote] = useState('');
@@ -59,15 +59,15 @@ const DailyNotes = () => {
   };
 
   return (
-    <div className="mt-3">
-      <p className="text-xs font-medium text-muted-foreground mb-1.5">Заметки</p>
+    <div className={`mt-3 flex flex-col ${className ?? ''}`}>
+      <p className="text-xs font-medium text-muted-foreground mb-1.5">Заметки сегодняшнего дня</p>
       <Textarea
         value={note}
         onChange={(e) => handleChange(e.target.value)}
         onBlur={handleBlur}
         disabled={futureDate}
         placeholder="Как вы себя чувствуете…"
-        className="text-xs min-h-[80px] rounded-xl resize-none bg-card"
+        className="text-xs flex-1 min-h-[120px] rounded-xl resize-none bg-card"
       />
     </div>
   );
