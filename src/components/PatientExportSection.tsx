@@ -174,6 +174,7 @@ const PatientExportSection = () => {
         {RANGE_OPTIONS.map((r) => (
           <button
             key={r.key}
+            type="button"
             className={cn(
               'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
               range === r.key
