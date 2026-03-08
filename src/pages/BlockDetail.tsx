@@ -269,6 +269,7 @@ const BlockDetail = () => {
 
       {!futureDate && (
         <button
+          type="button"
           onClick={handleSave}
           disabled={saving}
           className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
