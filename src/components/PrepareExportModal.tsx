@@ -119,7 +119,7 @@ const PrepareExportModal = ({ open, onOpenChange }: Props) => {
       }
 
       // Notes sheet
-      const notesRows: (string | string[])[] = [['Дата', 'Заметка']];
+      const notesRows: string[][] = [['Дата', 'Заметка']];
       entries.forEach((e) => {
         const note = (e as any).daily_note;
         if (note) {
