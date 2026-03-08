@@ -30,8 +30,7 @@ const PatientDetailDoctor = () => {
   const [exporting, setExporting] = useState(false);
   const [hasData, setHasData] = useState(true);
 
-  // Export range state
-  const [exportRangeIdx, setExportRangeIdx] = useState(3); // default "Всё"
+  const [exportRangeIdx, setExportRangeIdx] = useState(3);
   const [useCustomRange, setUseCustomRange] = useState(false);
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
@@ -40,7 +39,6 @@ const PatientDetailDoctor = () => {
   const today = new Date();
   const atToday = isToday(selectedDate) || isFuture(selectedDate);
 
-  // Load patient profile
   useEffect(() => {
     if (!patientId) return;
     supabase
@@ -51,7 +49,6 @@ const PatientDetailDoctor = () => {
       .then(({ data }) => setPatientName(data?.full_name || 'Пациент'));
   }, [patientId]);
 
-  // Load summary for selected date
   useEffect(() => {
     if (!patientId) return;
     const load = async () => {
@@ -76,7 +73,6 @@ const PatientDetailDoctor = () => {
     load();
   }, [patientId, dateStr]);
 
-  // Check if patient has any data
   useEffect(() => {
     if (!patientId) return;
     supabase
@@ -115,10 +111,9 @@ const PatientDetailDoctor = () => {
         }
       }
 
-      // Build query
       let query = supabase
         .from('entries')
-        .select('id, entry_date')
+        .select('id, entry_date, daily_note')
         .eq('user_id', patientId)
         .order('entry_date', { ascending: true });
 
@@ -135,13 +130,11 @@ const PatientDetailDoctor = () => {
 
       const entryIds = entries.map((e) => e.id);
 
-      // Get all mania answers
       const { data: answers } = await supabase
         .from('mania_answers')
         .select('entry_id, block_id, question_id, score')
         .in('entry_id', entryIds);
 
-      // Get summaries for block sums
       const { data: summaries } = await supabase
         .from('entry_summaries')
         .select('entry_id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
@@ -150,7 +143,6 @@ const PatientDetailDoctor = () => {
       const summaryMap = new Map<string, any>();
       summaries?.forEach((s) => summaryMap.set(s.entry_id, s));
 
-      // Build map: block_id -> question_id -> { entry_id -> score }
       const dataMap: Record<number, Record<number, Record<string, number>>> = {};
       answers?.forEach((a) => {
         if (!dataMap[a.block_id]) dataMap[a.block_id] = {};
@@ -170,10 +162,8 @@ const PatientDetailDoctor = () => {
           return block.questions.some((_, qIdx) => blockData[qIdx]?.[eid] !== undefined);
         });
 
-        // Header row
         const header = ['Критерий', ...(datesWithData.length ? datesWithData : [])];
 
-        // Question rows
         const rows = block.questions.map((q, qIdx) => {
           const row: (string | number)[] = [q];
           datesWithData.forEach((date) => {
@@ -184,7 +174,6 @@ const PatientDetailDoctor = () => {
           return row;
         });
 
-        // Sum row
         const sumRow: (string | number)[] = ['Сумма блока'];
         datesWithData.forEach((date) => {
           const eid = entries.find((e) => e.entry_date === date)?.id;
@@ -203,6 +192,20 @@ const PatientDetailDoctor = () => {
         XLSX.utils.book_append_sheet(wb, ws, `Блок ${block.id}`);
       }
 
+      // Notes sheet
+      const notesRows: string[][] = [['Дата', 'Заметка']];
+      entries.forEach((e) => {
+        const note = (e as any).daily_note;
+        if (note) {
+          notesRows.push([e.entry_date, note]);
+        }
+      });
+      if (notesRows.length > 1) {
+        const notesWs = XLSX.utils.aoa_to_sheet(notesRows);
+        notesWs['!cols'] = [{ wch: 12 }, { wch: 60 }];
+        XLSX.utils.book_append_sheet(wb, notesWs, 'Заметки');
+      }
+
       const safeName = patientName.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_');
       const fileSuffix = isAll ? 'ALL' : `${fromDate}_${toDate}`;
       XLSX.writeFile(wb, `PatientData_${safeName}_${fileSuffix}.xlsx`);
@@ -216,7 +219,6 @@ const PatientDetailDoctor = () => {
 
   return (
     <div className="p-4 pb-20 space-y-4">
-      {/* Header */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/')}>
           <ChevronLeft className="h-4 w-4" />
@@ -224,7 +226,6 @@ const PatientDetailDoctor = () => {
         <h1 className="text-base font-medium">{patientName}</h1>
       </div>
 
-      {/* Date selector */}
       <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card p-2">
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(addDays(selectedDate, -1))}>
           <ChevronLeft className="h-4 w-4" />
@@ -264,7 +265,6 @@ const PatientDetailDoctor = () => {
         Просмотр: {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
       </p>
 
-      {/* Blocks grid (read-only) */}
       <div className="grid grid-cols-2 gap-3">
         {BLOCKS.map((block) => {
           const sum = getBlockSum(block.id);
@@ -299,7 +299,6 @@ const PatientDetailDoctor = () => {
         })}
       </div>
 
-      {/* Export range controls */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium text-muted-foreground">Экспорт данных</h3>
         <div className="flex flex-wrap gap-2">
