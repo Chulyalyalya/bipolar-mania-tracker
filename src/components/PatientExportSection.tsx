@@ -74,11 +74,13 @@ const PatientExportSection = () => {
         query = query.gte('entry_date', fromDate).lte('entry_date', toDate);
       }
 
-      const { data: entries } = await query;
+      const { data: entries, error: entriesError } = await query;
+      if (entriesError) throw entriesError;
 
       if (!entries?.length) {
         setNoData(true);
-        setExporting(false);
+        console.error('EXPORT_ERROR', new Error('NO_DATA_FOR_EXPORT'));
+        toast.error('Нет сохранённых записей для выбранного периода.');
         return;
       }
 
@@ -87,10 +89,11 @@ const PatientExportSection = () => {
       let allAnswers: { entry_id: string; block_id: number; question_id: number; score: number }[] = [];
       for (let i = 0; i < entryIds.length; i += 500) {
         const batch = entryIds.slice(i, i + 500);
-        const { data } = await supabase
+        const { data, error: batchError } = await supabase
           .from('mania_answers')
           .select('entry_id, block_id, question_id, score')
           .in('entry_id', batch);
+        if (batchError) throw batchError;
         if (data) allAnswers = allAnswers.concat(data);
       }
 
@@ -153,7 +156,7 @@ const PatientExportSection = () => {
         ? `PatientData_${safeName}_ALL.xlsx`
         : `PatientData_${safeName}_${fromDate}_${toDate}.xlsx`;
 
-      XLSX.writeFile(wb, fileName);
+      downloadWorkbook(wb, fileName);
       console.log('EXPORT_SUCCESS', fileName);
       toast.success('Файл скачан');
     } catch (e: any) {
