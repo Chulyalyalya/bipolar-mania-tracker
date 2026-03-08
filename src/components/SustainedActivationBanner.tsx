@@ -46,8 +46,8 @@ const SustainedActivationBanner = () => {
   if (!show) return null;
 
   return (
-    <div className="mx-4 rounded-xl bg-secondary p-3">
-      <p className="text-xs text-foreground">
+    <div className="glass-card p-3.5 mb-3">
+      <p className="text-xs text-foreground leading-relaxed">
         Наблюдается устойчивая активация в течение нескольких дней. Рекомендуется обсудить это с врачом.
       </p>
     </div>

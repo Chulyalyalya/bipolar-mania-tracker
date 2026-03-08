@@ -34,13 +34,11 @@ const DailyNotes = ({ className }: { className?: string }) => {
     setNote(val);
   };
 
-  // Save note to DB (called from parent or on blur)
   const handleBlur = async () => {
     if (!user || futureDate) return;
 
     const now = new Date().toISOString();
 
-    // Upsert entry
     const { data: entry } = await supabase
       .from('entries')
       .upsert(
@@ -59,15 +57,17 @@ const DailyNotes = ({ className }: { className?: string }) => {
   };
 
   return (
-    <div className={`mt-3 flex flex-col ${className ?? ''}`}>
-      <p className="text-xs font-medium text-muted-foreground mb-1.5">Заметки сегодняшнего дня</p>
+    <div className={`glass-card p-4 flex flex-col ${className ?? ''}`}>
+      <p className="text-[11px] font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+        Заметки дня
+      </p>
       <Textarea
         value={note}
         onChange={(e) => handleChange(e.target.value)}
         onBlur={handleBlur}
         disabled={futureDate}
         placeholder="Как вы себя чувствуете…"
-        className="text-xs flex-1 min-h-[120px] rounded-xl resize-none bg-card"
+        className="text-xs flex-1 min-h-[120px] rounded-xl resize-none bg-transparent border-border/20 focus:border-primary/40"
       />
     </div>
   );

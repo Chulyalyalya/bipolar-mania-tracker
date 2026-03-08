@@ -8,7 +8,7 @@ const links = [
 ];
 
 const BottomNav = () => (
-  <nav className="fixed bottom-0 left-0 right-0 flex border-t border-border bg-card z-50">
+  <nav className="glass-surface fixed bottom-0 left-0 right-0 flex border-t border-border/20 z-50">
     {links.map(({ to, icon: Icon, label }) => (
       <NavLink
         key={to}
@@ -16,8 +16,10 @@ const BottomNav = () => (
         end={to === '/'}
         className={({ isActive }) =>
           cn(
-            'flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors',
-            isActive ? 'text-primary-foreground font-medium' : 'text-muted-foreground'
+            'flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] transition-all',
+            isActive
+              ? 'text-foreground font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
           )
         }
       >
