@@ -307,6 +307,9 @@ const Auth = () => {
 
             <GlassInput
               icon={User}
+              type="text"
+              name="full_name"
+              autoComplete="name"
               value={fullName}
               onChange={(e) => { setFullName(e.target.value); clearError('fullName'); }}
               placeholder="Полное имя"
@@ -317,6 +320,9 @@ const Auth = () => {
             <GlassInput
               icon={Mail}
               type="email"
+              name="email"
+              autoComplete="username"
+              inputMode="email"
               value={email}
               onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
               placeholder="e-mail address"
