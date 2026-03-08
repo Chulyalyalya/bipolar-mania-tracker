@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { ChevronRight } from 'lucide-react';
 
 interface PatientRow {
   patientId: string;
@@ -70,7 +69,7 @@ const DoctorHome = () => {
 
   if (loading) {
     return (
-      <div className="p-4">
+      <div className="p-5">
         <p className="text-sm text-muted-foreground">Загрузка…</p>
       </div>
     );
@@ -78,30 +77,35 @@ const DoctorHome = () => {
 
   return (
     <div className="p-4 pb-20 space-y-4">
-      <h1 className="text-lg font-medium">Мои пациенты</h1>
+      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+        Мои пациенты
+      </p>
       {patients.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Нет подключённых пациентов. Поделитесь своим кодом врача.
-        </p>
+        <div className="glass-card p-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Нет подключённых пациентов. Поделитесь своим кодом врача.
+          </p>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {patients.map((p) => (
-            <Card
+            <div
               key={p.patientId}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="glass-card cursor-pointer hover:shadow-md transition-all group"
               onClick={() => navigate(`/patient/${p.patientId}`)}
             >
-              <CardContent className="flex items-center justify-between p-4">
+              <div className="flex items-center justify-between p-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{p.fullName}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
                     {p.lastEntryDate
                       ? `Последняя запись: ${format(new Date(p.lastEntryDate), 'd MMM yyyy', { locale: ru })}`
                       : 'Нет записей'}
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
+              </div>
+            </div>
           ))}
         </div>
       )}

@@ -6,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { subDays, format, isFuture, isToday } from 'date-fns';
@@ -151,14 +150,12 @@ const BlockDetail = () => {
         eid = data.id;
         setEntryId(eid);
       } else {
-        // Update last_edited_at only
         await supabase
           .from('entries')
           .update({ last_edited_at: now } as any)
           .eq('id', eid);
       }
 
-      // Delete old answers for this block then insert
       await supabase
         .from('mania_answers')
         .delete()
@@ -177,7 +174,6 @@ const BlockDetail = () => {
         .insert(rows);
       if (insertErr) throw insertErr;
 
-      // Recompute summary
       const { data: allAnswers } = await supabase
         .from('mania_answers')
         .select('block_id, score')
@@ -220,52 +216,50 @@ const BlockDetail = () => {
   return (
     <div className="p-4 pb-20 space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/')}>
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => navigate('/')}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-base font-medium">Блок {block.id}</h1>
-          <p className="text-xs text-muted-foreground">{block.name}</p>
+          <h1 className="text-base font-semibold">Блок {block.id}</h1>
+          <p className="text-[11px] text-muted-foreground">{block.name}</p>
         </div>
       </div>
 
       {futureDate && (
-        <div className="rounded-xl bg-secondary p-4 text-center">
+        <div className="glass-card p-5 text-center">
           <p className="text-sm text-muted-foreground">
             Эта дата ещё не наступила. Заполнение будет доступно позже.
           </p>
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {block.questions.map((q, qIdx) => (
-          <Card key={qIdx}>
-            <CardContent className="p-3">
-              <p className="text-xs text-foreground mb-2">{q}</p>
-              <div className="flex gap-1.5">
-                {[0, 1, 2, 3, 4].map((val) => (
-                  <button
-                    key={val}
-                    onClick={() => !futureDate && setScore(qIdx, val)}
-                    disabled={futureDate}
-                    className={cn(
-                      'h-8 w-8 rounded-full border-2 text-xs font-medium transition-colors',
-                      scores[qIdx] === val
-                        ? 'bg-primary border-primary text-primary-foreground'
-                        : 'border-border text-muted-foreground hover:border-primary/50',
-                      futureDate && 'opacity-50 cursor-not-allowed'
-                    )}
-                  >
-                    {val}
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div key={qIdx} className="glass-card p-4">
+            <p className="text-xs text-foreground mb-2.5 leading-relaxed">{q}</p>
+            <div className="flex gap-2">
+              {[0, 1, 2, 3, 4].map((val) => (
+                <button
+                  key={val}
+                  onClick={() => !futureDate && setScore(qIdx, val)}
+                  disabled={futureDate}
+                  className={cn(
+                    'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all',
+                    scores[qIdx] === val
+                      ? 'bg-foreground border-foreground text-background shadow-sm'
+                      : 'border-border/30 text-muted-foreground hover:border-primary/50 hover:bg-card/60',
+                    futureDate && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  {val}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+      <div className="glass-card flex items-center justify-between p-4">
         <span className="text-sm font-medium">Сумма блока</span>
         <span className={cn('text-lg font-semibold', isRisk ? 'text-alert-red' : 'text-alert-green')}>
           {total}
@@ -273,9 +267,16 @@ const BlockDetail = () => {
       </div>
 
       {!futureDate && (
-        <Button className="w-full" onClick={handleSave} disabled={saving}>
-          {entryId ? 'Обновить' : 'Сохранить'}
-        </Button>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          <span>{entryId ? 'Обновить' : 'Сохранить'}</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/20">
+            <ChevronLeft className="h-3.5 w-3.5 text-background rotate-180" />
+          </div>
+        </button>
       )}
 
       {lastEdited && (
@@ -284,42 +285,47 @@ const BlockDetail = () => {
         </p>
       )}
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium text-muted-foreground">Статистика</h3>
-        <div className="flex gap-1">
+      <div className="space-y-2.5">
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Статистика</p>
+        <div className="flex gap-1.5">
           {RANGES.map((r, i) => (
-            <Button
+            <button
               key={r.label}
-              variant={rangeIdx === i ? 'default' : 'outline'}
-              size="sm"
-              className="text-xs"
+              className={cn(
+                'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
+                rangeIdx === i
+                  ? 'bg-foreground text-background'
+                  : 'bg-card/40 text-muted-foreground hover:bg-card/60 border border-border/30'
+              )}
               onClick={() => setRangeIdx(i)}
             >
               {r.label}
-            </Button>
+            </button>
           ))}
         </div>
 
         {chartData.length > 0 ? (
-          <ChartContainer
-            config={{ sum: { label: 'Сумма', color: 'hsl(var(--primary))' } }}
-            className="h-[200px] w-full"
-          >
-            <LineChart data={chartData}>
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} />
-              <ReferenceLine y={4} stroke="hsl(var(--alert-red))" strokeDasharray="3 3" strokeOpacity={0.5} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Line
-                type="linear"
-                dataKey="sum"
-                stroke="hsl(var(--primary))"
-                strokeWidth={1.5}
-                dot={<CustomDot />}
-                connectNulls={false}
-              />
-            </LineChart>
-          </ChartContainer>
+          <div className="glass-card p-3">
+            <ChartContainer
+              config={{ sum: { label: 'Сумма', color: 'hsl(var(--primary))' } }}
+              className="h-[200px] w-full"
+            >
+              <LineChart data={chartData}>
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <ReferenceLine y={4} stroke="hsl(var(--alert-red))" strokeDasharray="3 3" strokeOpacity={0.5} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line
+                  type="linear"
+                  dataKey="sum"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={1.5}
+                  dot={<CustomDot />}
+                  connectNulls={false}
+                />
+              </LineChart>
+            </ChartContainer>
+          </div>
         ) : (
           <p className="text-xs text-muted-foreground py-8 text-center">Нет данных за выбранный период</p>
         )}

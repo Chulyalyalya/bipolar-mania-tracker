@@ -2,8 +2,6 @@ import { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BLOCKS } from '@/lib/questions';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, subDays } from 'date-fns';
@@ -84,7 +82,6 @@ const PatientExportSection = () => {
 
       const entryIds = entries.map((e) => e.id);
 
-      // Fetch answers in batches if needed (Supabase 1000 limit)
       let allAnswers: { entry_id: string; block_id: number; question_id: number; score: number }[] = [];
       for (let i = 0; i < entryIds.length; i += 500) {
         const batch = entryIds.slice(i, i + 500);
@@ -95,7 +92,6 @@ const PatientExportSection = () => {
         if (data) allAnswers = allAnswers.concat(data);
       }
 
-      // Build lookup: block -> question -> entryId -> score
       const dataMap: Record<number, Record<number, Record<string, number>>> = {};
       allAnswers.forEach((a) => {
         if (!dataMap[a.block_id]) dataMap[a.block_id] = {};
@@ -105,7 +101,6 @@ const PatientExportSection = () => {
 
       const wb = XLSX.utils.book_new();
 
-      // Block sheets
       for (const block of BLOCKS) {
         const blockData = dataMap[block.id] || {};
 
@@ -138,7 +133,6 @@ const PatientExportSection = () => {
         XLSX.utils.book_append_sheet(wb, ws, `Блок ${block.id}`);
       }
 
-      // Notes sheet
       const notesRows: string[][] = [['Дата', 'Заметка']];
       entries.forEach((e) => {
         const note = (e as any).daily_note;
@@ -152,7 +146,6 @@ const PatientExportSection = () => {
         XLSX.utils.book_append_sheet(wb, notesWs, 'Заметки');
       }
 
-      // Filename
       const safeName = (profile?.full_name || 'Patient').replace(/[^a-zA-Zа-яА-Я0-9]/g, '_');
       const fileName = isAll
         ? `PatientData_${safeName}_ALL.xlsx`
@@ -168,105 +161,109 @@ const PatientExportSection = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm">Экспорт данных</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Range selector */}
-        <div className="flex flex-wrap gap-2">
-          {RANGE_OPTIONS.map((r) => (
-            <Button
-              key={r.key}
-              variant={range === r.key ? 'default' : 'outline'}
-              size="sm"
-              className="text-xs"
-              onClick={() => {
-                setRange(r.key);
-                setNoData(false);
-              }}
-            >
-              {r.label}
-            </Button>
-          ))}
-        </div>
+    <div className="glass-card p-5 space-y-4">
+      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+        Экспорт данных
+      </p>
 
-        {/* Custom date pickers */}
-        {range === 'custom' && (
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn('text-xs flex-1', !customFrom && 'text-muted-foreground')}
-                  >
-                    {customFrom ? format(customFrom, 'd MMM yyyy', { locale: ru }) : 'Дата с'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={customFrom}
-                    onSelect={(d) => {
-                      setCustomFrom(d);
-                      setNoData(false);
-                    }}
-                    disabled={(d) => d > today}
-                    className="p-3 pointer-events-auto"
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn('text-xs flex-1', !customTo && 'text-muted-foreground')}
-                  >
-                    {customTo ? format(customTo, 'd MMM yyyy', { locale: ru }) : 'Дата по'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={customTo}
-                    onSelect={(d) => {
-                      setCustomTo(d);
-                      setNoData(false);
-                    }}
-                    disabled={(d) => d > today}
-                    className="p-3 pointer-events-auto"
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            {customError && (
-              <p className="text-[11px] text-destructive">{customError}</p>
+      {/* Range selector */}
+      <div className="flex flex-wrap gap-1.5">
+        {RANGE_OPTIONS.map((r) => (
+          <button
+            key={r.key}
+            className={cn(
+              'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
+              range === r.key
+                ? 'bg-foreground text-background'
+                : 'bg-card/40 text-muted-foreground hover:bg-card/60 border border-border/30'
             )}
+            onClick={() => {
+              setRange(r.key);
+              setNoData(false);
+            }}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Custom date pickers */}
+      {range === 'custom' && (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    'flex-1 rounded-xl border border-border/30 bg-card/40 px-3 py-2 text-xs font-medium transition-all hover:bg-card/60',
+                    !customFrom && 'text-muted-foreground'
+                  )}
+                >
+                  {customFrom ? format(customFrom, 'd MMM yyyy', { locale: ru }) : 'Дата с'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 rounded-2xl border-border/30" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customFrom}
+                  onSelect={(d) => {
+                    setCustomFrom(d);
+                    setNoData(false);
+                  }}
+                  disabled={(d) => d > today}
+                  className="p-3 pointer-events-auto"
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    'flex-1 rounded-xl border border-border/30 bg-card/40 px-3 py-2 text-xs font-medium transition-all hover:bg-card/60',
+                    !customTo && 'text-muted-foreground'
+                  )}
+                >
+                  {customTo ? format(customTo, 'd MMM yyyy', { locale: ru }) : 'Дата по'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 rounded-2xl border-border/30" align="end">
+                <Calendar
+                  mode="single"
+                  selected={customTo}
+                  onSelect={(d) => {
+                    setCustomTo(d);
+                    setNoData(false);
+                  }}
+                  disabled={(d) => d > today}
+                  className="p-3 pointer-events-auto"
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-        )}
+          {customError && (
+            <p className="text-[11px] text-destructive">{customError}</p>
+          )}
+        </div>
+      )}
 
-        {/* No data message */}
-        {noData && (
-          <p className="text-xs text-muted-foreground text-center py-1">
-            Нет сохранённых записей для выбранного периода.
-          </p>
-        )}
+      {/* No data message */}
+      {noData && (
+        <p className="text-xs text-muted-foreground text-center py-1">
+          Нет сохранённых записей для выбранного периода.
+        </p>
+      )}
 
-        {/* Export button */}
-        <Button
-          className="w-full"
-          onClick={handleExport}
-          disabled={exporting || !customValid || noData}
-        >
-          {exporting ? 'Экспорт…' : 'Скачать данные Excel'}
-        </Button>
-      </CardContent>
-    </Card>
+      {/* Export button */}
+      <button
+        onClick={handleExport}
+        disabled={exporting || !customValid || noData}
+        className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+      >
+        {exporting ? 'Экспорт…' : 'Скачать данные Excel'}
+      </button>
+    </div>
   );
 };
 

@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { BLOCKS } from '@/lib/questions';
-import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { isFuture, isToday } from 'date-fns';
@@ -11,7 +10,7 @@ import type { EntrySummary } from '@/types';
 import DonutStreak from '@/components/DonutStreak';
 import DailyNotes from '@/components/DailyNotes';
 import SustainedActivationBanner from '@/components/SustainedActivationBanner';
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 
 const PatientHome = () => {
   const { user } = useAuth();
@@ -58,7 +57,7 @@ const PatientHome = () => {
     <div className="p-4 pb-20">
       {/* Urgent risk banner */}
       {riskCount >= 3 && (
-        <div className="mb-3 rounded-xl bg-destructive/10 border border-destructive/20 p-3">
+        <div className="mb-3 glass-card border-destructive/20 bg-destructive/5 p-3.5">
           <p className="text-xs text-destructive font-medium">
             Сегодня {riskCount} блоков с повышенным риском. Обратите внимание на своё состояние.
           </p>
@@ -68,7 +67,7 @@ const PatientHome = () => {
       <SustainedActivationBanner />
 
       {futureDate && (
-        <div className="my-4 rounded-xl bg-secondary p-4 text-center">
+        <div className="my-4 glass-card p-5 text-center">
           <p className="text-sm text-muted-foreground">
             Эта дата ещё не наступила. Заполнение будет доступно позже.
           </p>
@@ -78,14 +77,16 @@ const PatientHome = () => {
       {/* Two-column layout */}
       <div className="flex flex-col md:flex-row gap-4 mt-3 md:items-stretch">
         {/* Left column: streak + notes */}
-        <div className="w-full md:w-1/4 flex flex-col items-center md:items-stretch gap-3">
+        <div className="w-full md:w-1/4 flex flex-col items-stretch gap-3">
           <DonutStreak />
           <DailyNotes className="flex-1" />
         </div>
 
         {/* Right column: blocks */}
         <div className="w-full md:w-3/4">
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">Mania Checker</h2>
+          <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+            Mania Checker
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {BLOCKS.map((block) => {
               const sum = getBlockSum(block.id);
@@ -93,16 +94,16 @@ const PatientHome = () => {
               const isFullWidth = block.id === 7;
               const hasFilled = filledBlocks.has(block.id);
               return (
-                <Card
+                <div
                   key={block.id}
                   className={cn(
-                    'cursor-pointer hover:shadow-md transition-shadow',
+                    'glass-card cursor-pointer hover:shadow-md transition-all group',
                     isFullWidth && 'col-span-2',
                     futureDate && 'opacity-50 pointer-events-none'
                   )}
                   onClick={() => !futureDate && navigate(`/block/${block.id}`)}
                 >
-                  <CardContent className="flex items-center justify-between p-4">
+                  <div className="flex items-center justify-between p-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-medium truncate">
@@ -112,11 +113,11 @@ const PatientHome = () => {
                           <Check className="h-3.5 w-3.5 text-alert-green flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{block.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">{block.name}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       {sum !== null && (
-                        <span className="text-sm font-medium">{sum}</span>
+                        <span className="text-sm font-semibold">{sum}</span>
                       )}
                       <div
                         className={cn(
@@ -124,9 +125,10 @@ const PatientHome = () => {
                           sum === null ? 'bg-muted' : isRisk ? 'bg-alert-red' : 'bg-alert-green'
                         )}
                       />
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>

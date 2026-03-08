@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -74,38 +73,44 @@ const Settings = () => {
 
   return (
     <div className="p-4 pb-20 space-y-4">
-      <h1 className="text-lg font-medium">Настройки</h1>
+      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+        Настройки
+      </p>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Профиль</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
+      <div className="glass-card p-5 space-y-3">
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Профиль</p>
+        <div className="space-y-1.5 text-sm">
           <p><span className="text-muted-foreground">Имя:</span> {profile?.full_name || '—'}</p>
           <p><span className="text-muted-foreground">Роль:</span> {role === 'doctor' ? 'Врач' : 'Пациент'}</p>
           {role === 'doctor' && profile?.doctor_code && (
             <p><span className="text-muted-foreground">Код:</span> <span className="font-mono">{profile.doctor_code}</span></p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {role === 'patient' && (
         <>
-          <Button className="w-full" onClick={() => setSheetOpen(true)}>
+          <button
+            onClick={() => setSheetOpen(true)}
+            className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+          >
             Добавить врача
-          </Button>
+          </button>
 
           <PatientExportSection />
         </>
       )}
 
-      <Button variant="outline" className="w-full" onClick={signOut}>
+      <button
+        onClick={signOut}
+        className="flex w-full items-center justify-center rounded-2xl border border-border/30 bg-card/40 backdrop-blur-sm px-5 py-3 text-sm font-medium text-foreground transition-all hover:bg-card/60"
+      >
         Выйти
-      </Button>
+      </button>
 
       {/* Add doctor sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl">
+        <SheetContent side="bottom" className="rounded-t-3xl border-border/20">
           <SheetHeader>
             <SheetTitle>Подключить врача</SheetTitle>
             <SheetDescription>Введите код, полученный от вашего врача</SheetDescription>
@@ -121,34 +126,36 @@ const Settings = () => {
                 }}
                 maxLength={9}
                 className={cn(
-                  'font-mono text-center tracking-widest uppercase',
+                  'font-mono text-center tracking-widest uppercase rounded-2xl border-border/30 bg-card/40',
                   codeError && 'border-destructive'
                 )}
               />
               {codeError && (
-                <p className="text-xs text-destructive mt-1">{codeError}</p>
+                <p className="text-[11px] text-destructive mt-1">{codeError}</p>
               )}
             </div>
             <div className="flex gap-2">
-              <Button className="flex-1" onClick={handleConnect} disabled={connecting}>
+              <button
+                onClick={handleConnect}
+                disabled={connecting}
+                className="flex-1 rounded-2xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
                 Подключить
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1"
+              </button>
+              <button
                 onClick={() => {
                   setSheetOpen(false);
                   setDoctorCode('');
                   setCodeError('');
                 }}
+                className="flex-1 rounded-2xl border border-border/30 bg-card/40 px-4 py-3 text-sm font-medium text-foreground transition-all hover:bg-card/60"
               >
                 Отмена
-              </Button>
+              </button>
             </div>
           </div>
         </SheetContent>
       </Sheet>
-
     </div>
   );
 };

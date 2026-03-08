@@ -12,15 +12,20 @@ const DateSelector = () => {
   const today = new Date();
 
   return (
-    <div className="flex items-center justify-center gap-2 px-4 py-2 border-b border-border bg-card">
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(addDays(selectedDate, -1))}>
+    <div className="flex items-center justify-center gap-1.5 px-4 py-2.5 border-b border-border/20 bg-background">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 rounded-xl"
+        onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+      >
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
       <Button
         variant="ghost"
         size="sm"
-        className="text-xs text-muted-foreground"
+        className="text-[11px] text-muted-foreground rounded-xl"
         onClick={() => setSelectedDate(new Date())}
       >
         Сегодня
@@ -28,11 +33,15 @@ const DateSelector = () => {
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="text-sm font-medium">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-sm font-medium rounded-2xl border-border/30 bg-card/40 backdrop-blur-sm hover:bg-card/60"
+          >
             {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="center">
+        <PopoverContent className="w-auto p-0 rounded-2xl border-border/30" align="center">
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -47,7 +56,7 @@ const DateSelector = () => {
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 rounded-xl"
         disabled={atToday}
         onClick={() => {
           if (!atToday) setSelectedDate(addDays(selectedDate, 1));

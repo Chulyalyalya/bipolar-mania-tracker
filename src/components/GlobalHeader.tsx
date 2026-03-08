@@ -14,21 +14,21 @@ const GlobalHeader = () => {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-      <span className="text-sm font-medium text-foreground">
+    <header className="glass-surface sticky top-0 z-40 flex items-center justify-between px-5 py-3.5 border-b border-border/30">
+      <span className="text-sm font-semibold text-foreground tracking-tight">
         {profile?.full_name || 'Пользователь'}
       </span>
       <div className="flex items-center gap-2">
         {role === 'doctor' && profile?.doctor_code && (
           <button
             onClick={copyCode}
-            className="flex items-center gap-1 text-xs font-mono tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 rounded-xl border border-border/30 bg-card/40 px-2.5 py-1 text-[11px] font-mono tracking-wider text-muted-foreground hover:text-foreground hover:bg-card/60 transition-all"
           >
             {profile.doctor_code}
-            <Copy className="h-3.5 w-3.5" />
+            <Copy className="h-3 w-3" />
           </button>
         )}
-        <Button variant="ghost" size="icon" onClick={signOut} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={signOut} className="h-8 w-8 rounded-xl hover:bg-card/60">
           <LogOut className="h-4 w-4" />
         </Button>
       </div>

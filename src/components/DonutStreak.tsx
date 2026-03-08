@@ -44,8 +44,8 @@ const DonutStreak = () => {
   }, [user]);
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="h-20 w-20 rounded-full bg-accent/30 flex flex-col items-center justify-center">
+    <div className="glass-card flex flex-col items-center justify-center p-5">
+      <div className="h-20 w-20 rounded-full border-2 border-border/30 bg-card/30 flex flex-col items-center justify-center">
         <span className="text-2xl font-semibold text-foreground leading-none">{streak}</span>
         <span className="text-[10px] text-muted-foreground mt-0.5">дней</span>
       </div>
