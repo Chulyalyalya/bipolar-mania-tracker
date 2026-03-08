@@ -334,6 +334,8 @@ const Auth = () => {
               <GlassInput
                 icon={Lock}
                 type="password"
+                name="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
                 placeholder="пароль"
