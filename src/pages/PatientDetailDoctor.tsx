@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { downloadWorkbook } from '@/lib/xlsxDownload';
 import type { EntrySummary } from '@/types';
 
 const EXPORT_RANGES = [
