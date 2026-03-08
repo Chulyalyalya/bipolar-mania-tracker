@@ -1,5 +1,5 @@
 import { useSelectedDate } from '@/contexts/DateContext';
-import { addDays, format, isToday } from 'date-fns';
+import { addDays, format, isToday, isFuture } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,8 @@ import { Calendar } from '@/components/ui/calendar';
 
 const DateSelector = () => {
   const { selectedDate, setSelectedDate } = useSelectedDate();
+  const atToday = isToday(selectedDate) || isFuture(selectedDate);
+  const today = new Date();
 
   return (
     <div className="flex items-center justify-center gap-2 px-4 py-2 border-b border-border bg-card">
@@ -35,12 +37,22 @@ const DateSelector = () => {
             mode="single"
             selected={selectedDate}
             onSelect={(d) => d && setSelectedDate(d)}
+            disabled={(d) => d > today}
+            className="p-3 pointer-events-auto"
             initialFocus
           />
         </PopoverContent>
       </Popover>
 
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        disabled={atToday}
+        onClick={() => {
+          if (!atToday) setSelectedDate(addDays(selectedDate, 1));
+        }}
+      >
         <ChevronRight className="h-4 w-4" />
       </Button>
     </div>

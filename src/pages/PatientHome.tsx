@@ -6,13 +6,18 @@ import { BLOCKS } from '@/lib/questions';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { isFuture, isToday } from 'date-fns';
 import type { EntrySummary } from '@/types';
+import DonutStreak from '@/components/DonutStreak';
+import SustainedActivationBanner from '@/components/SustainedActivationBanner';
 
 const PatientHome = () => {
   const { user } = useAuth();
-  const { dateStr } = useSelectedDate();
+  const { selectedDate, dateStr } = useSelectedDate();
   const [summary, setSummary] = useState<EntrySummary | null>(null);
   const navigate = useNavigate();
+
+  const futureDate = isFuture(selectedDate) && !isToday(selectedDate);
 
   useEffect(() => {
     if (!user) return;
@@ -43,9 +48,32 @@ const PatientHome = () => {
     return summary[key] as number;
   };
 
+  const riskCount = summary?.total_risk_blocks_count ?? 0;
+
   return (
     <div className="p-4 pb-20">
-      <h2 className="text-sm font-medium text-muted-foreground mb-3">Mania Checker</h2>
+      <DonutStreak />
+
+      {/* Urgent risk banner */}
+      {riskCount >= 3 && (
+        <div className="mb-3 rounded-xl bg-destructive/10 border border-destructive/20 p-3">
+          <p className="text-xs text-destructive font-medium">
+            Сегодня {riskCount} блоков с повышенным риском. Обратите внимание на своё состояние.
+          </p>
+        </div>
+      )}
+
+      <SustainedActivationBanner />
+
+      {futureDate && (
+        <div className="my-4 rounded-xl bg-secondary p-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Эта дата ещё не наступила. Заполнение будет доступно позже.
+          </p>
+        </div>
+      )}
+
+      <h2 className="text-sm font-medium text-muted-foreground mb-3 mt-3">Mania Checker</h2>
       <div className="grid grid-cols-2 gap-3">
         {BLOCKS.map((block) => {
           const sum = getBlockSum(block.id);
@@ -56,9 +84,10 @@ const PatientHome = () => {
               key={block.id}
               className={cn(
                 'cursor-pointer hover:shadow-md transition-shadow',
-                isFullWidth && 'col-span-2'
+                isFullWidth && 'col-span-2',
+                futureDate && 'opacity-50 pointer-events-none'
               )}
-              onClick={() => navigate(`/block/${block.id}`)}
+              onClick={() => !futureDate && navigate(`/block/${block.id}`)}
             >
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex-1 min-w-0">
