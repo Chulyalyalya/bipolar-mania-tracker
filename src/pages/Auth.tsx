@@ -30,7 +30,7 @@ const GlassInput = ({
   >
     <Icon className="h-4 w-4 shrink-0 text-muted-foreground/60" />
     <input
-      className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none"
+      className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none w-full"
       {...props}
     />
   </div>
