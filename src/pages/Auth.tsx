@@ -150,6 +150,7 @@ const RegisterForm = ({
 
   const handle = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('REGISTER_CLICK', { email, fullName, role: selectedRole });
     const newErrors: FieldErrors = {};
     if (!selectedRole) newErrors.role = 'Выберите роль';
     if (!fullName.trim()) newErrors.fullName = 'Введите полное имя';
