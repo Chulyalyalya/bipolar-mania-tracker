@@ -95,9 +95,7 @@ const Settings = () => {
             Добавить врача
           </Button>
 
-          <Button variant="outline" className="w-full" onClick={() => setExportOpen(true)}>
-            Подготовить данные к приёму
-          </Button>
+          <PatientExportSection />
         </>
       )}
 
