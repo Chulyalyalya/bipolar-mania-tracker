@@ -153,6 +153,7 @@ const PatientExportSection = () => {
         : `PatientData_${safeName}_${fromDate}_${toDate}.xlsx`;
 
       XLSX.writeFile(wb, fileName);
+      console.log('EXPORT_SUCCESS', fileName);
       toast.success('Файл скачан');
     } catch (e: any) {
       toast.error(e.message || 'Ошибка экспорта');
