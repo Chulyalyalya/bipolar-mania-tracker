@@ -357,6 +357,23 @@ const Auth = () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           // auto-confirmed
         } else {setConfirmationEmail(data.email);setShowConfirmation(true);}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}}, []);const handleForgot = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, { redirectTo: `${window.location.origin}/reset-password` });if (error) throw error;toast.success('Ссылка для сброса отправлена на почту');} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}}; // ── Confirmation ──
   if (showConfirmation) {return <Shell>
@@ -389,55 +406,38 @@ const Auth = () => {
           <form onSubmit={handleForgot} className="space-y-4">
             <div className={`${fieldBase} ${fieldNormal}`}>
               <Mail className="h-4 w-4 shrink-0 text-muted-foreground/60" />
-              <input
-              type="email"
-              name="email"
-              autoComplete="username"
-              value={forgotEmail}
-              onChange={(e) => setForgotEmail(e.target.value)}
-              placeholder="e-mail address"
-              required
-              className={inputClass} />
+              <input type="email" name="email" autoComplete="username" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="e-mail address" required className={inputClass} />
               
             </div>
             <SubmitButton loading={loading} label="Отправить ссылку" />
-            <button
-            type="button"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            onClick={() => setShowForgot(false)}>
+            <button type="button" className="text-xs text-muted-foreground hover:text-foreground transition-colors" onClick={() => setShowForgot(false)}>
               
               ← Назад
             </button>
           </form>
         </div>
-      </Shell>;
-
-  }
-
-  // ── Main ──
-  return (
-    <Shell>
+      </Shell>;} // ── Main ──
+  return <Shell>
       <div className="space-y-6">
         <div className="flex items-baseline justify-between">
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">Bipolar             Mania           Tracker
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">Bipolar Mania     Tracker
 
-
-          </h1>
+        </h1>
           <div className="flex gap-4">
             <button type="button"
-            onClick={() => {console.log('SWITCH_TO_LOGIN');setTab('login');}}
-            className={`text-sm font-medium transition-colors ${
-            tab === 'login' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'}`
-            }>
+          onClick={() => {console.log('SWITCH_TO_LOGIN');setTab('login');}}
+          className={`text-sm font-medium transition-colors ${
+          tab === 'login' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'}`
+          }>
               
               Вход
             </button>
             <button
-              type="button"
-              onClick={() => {console.log('SWITCH_TO_REGISTER');setTab('register');}}
-              className={`text-sm font-medium transition-colors ${
-              tab === 'register' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'}`
-              }>
+            type="button"
+            onClick={() => {console.log('SWITCH_TO_REGISTER');setTab('register');}}
+            className={`text-sm font-medium transition-colors ${
+            tab === 'register' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'}`
+            }>
               
               Регистрация
             </button>
@@ -445,26 +445,26 @@ const Auth = () => {
         </div>
 
         {tab === 'login' &&
-        <LoginForm
-          loading={loading}
-          onSubmit={handleLogin}
-          onForgot={() => setShowForgot(true)} />
+      <LoginForm
+        loading={loading}
+        onSubmit={handleLogin}
+        onForgot={() => setShowForgot(true)} />
 
-        }
+      }
 
         {tab === 'register' &&
-        <RegisterForm
-          loading={loading}
-          onSubmit={handleRegister}
-          onSwitchLogin={() => setTab('login')} />
+      <RegisterForm
+        loading={loading}
+        onSubmit={handleRegister}
+        onSwitchLogin={() => setTab('login')} />
 
-        }
+      }
 
         <p className="text-center text-[11px] text-muted-foreground/50">
           Clinical daily tracking · Private by default
         </p>
       </div>
-    </Shell>);
+    </Shell>;
 
 };
 
