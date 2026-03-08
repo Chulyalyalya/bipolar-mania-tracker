@@ -242,7 +242,8 @@ const BlockDetail = () => {
               {[0, 1, 2, 3, 4].map((val) => (
                 <button
                   key={val}
-                  onClick={() => !futureDate && setScore(qIdx, val)}
+                  type="button"
+                  onClick={() => { if (!futureDate) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
                   disabled={futureDate}
                   className={cn(
                     'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all',
