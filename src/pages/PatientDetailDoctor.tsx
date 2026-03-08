@@ -4,15 +4,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { BLOCKS } from '@/lib/questions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChevronLeft, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { addDays, format, isToday } from 'date-fns';
+import { addDays, format, isFuture, isToday, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import type { EntrySummary } from '@/types';
+
+const EXPORT_RANGES = [
+  { label: '7 дней', days: 7 },
+  { label: '30 дней', days: 30 },
+  { label: '90 дней', days: 90 },
+  { label: 'Всё', days: null },
+];
 
 const PatientDetailDoctor = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -23,7 +30,15 @@ const PatientDetailDoctor = () => {
   const [exporting, setExporting] = useState(false);
   const [hasData, setHasData] = useState(true);
 
+  // Export range state
+  const [exportRangeIdx, setExportRangeIdx] = useState(3); // default "Всё"
+  const [useCustomRange, setUseCustomRange] = useState(false);
+  const [customFrom, setCustomFrom] = useState<Date | undefined>();
+  const [customTo, setCustomTo] = useState<Date | undefined>();
+
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
+  const today = new Date();
+  const atToday = isToday(selectedDate) || isFuture(selectedDate);
 
   // Load patient profile
   useEffect(() => {
@@ -45,14 +60,14 @@ const PatientDetailDoctor = () => {
         .select('id')
         .eq('user_id', patientId)
         .eq('entry_date', dateStr)
-        .single();
+        .maybeSingle();
 
       if (entry) {
         const { data } = await supabase
           .from('entry_summaries')
           .select('*')
           .eq('entry_id', entry.id)
-          .single();
+          .maybeSingle();
         setSummary(data as EntrySummary | null);
       } else {
         setSummary(null);
@@ -78,19 +93,42 @@ const PatientDetailDoctor = () => {
     return summary[key] as number;
   };
 
+  const isCustomValid = useCustomRange ? !!(customFrom && customTo && customFrom <= customTo) : true;
+
   const handleExport = useCallback(async () => {
     if (!patientId) return;
     setExporting(true);
     try {
-      // Get all entries for this patient
-      const { data: entries } = await supabase
+      let fromDate: string | null = null;
+      let toDate: string = format(new Date(), 'yyyy-MM-dd');
+      let isAll = false;
+
+      if (useCustomRange) {
+        fromDate = format(customFrom!, 'yyyy-MM-dd');
+        toDate = format(customTo!, 'yyyy-MM-dd');
+      } else {
+        const range = EXPORT_RANGES[exportRangeIdx];
+        if (range.days === null) {
+          isAll = true;
+        } else {
+          fromDate = format(subDays(new Date(), range.days), 'yyyy-MM-dd');
+        }
+      }
+
+      // Build query
+      let query = supabase
         .from('entries')
         .select('id, entry_date')
         .eq('user_id', patientId)
         .order('entry_date', { ascending: true });
 
+      if (fromDate) query = query.gte('entry_date', fromDate);
+      if (!isAll) query = query.lte('entry_date', toDate);
+
+      const { data: entries } = await query;
+
       if (!entries?.length) {
-        toast.error('Нет сохранённых записей для экспорта.');
+        toast.error('Нет сохранённых записей для выбранного периода.');
         setExporting(false);
         return;
       }
@@ -103,6 +141,15 @@ const PatientDetailDoctor = () => {
         .select('entry_id, block_id, question_id, score')
         .in('entry_id', entryIds);
 
+      // Get summaries for block sums
+      const { data: summaries } = await supabase
+        .from('entry_summaries')
+        .select('entry_id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
+        .in('entry_id', entryIds);
+
+      const summaryMap = new Map<string, any>();
+      summaries?.forEach((s) => summaryMap.set(s.entry_id, s));
+
       // Build map: block_id -> question_id -> { entry_id -> score }
       const dataMap: Record<number, Record<number, Record<string, number>>> = {};
       answers?.forEach((a) => {
@@ -111,37 +158,22 @@ const PatientDetailDoctor = () => {
         dataMap[a.block_id][a.question_id][a.entry_id] = a.score;
       });
 
-      // Map entry_id -> date string
-      const entryDateMap = new Map(entries.map((e) => [e.id, e.entry_date]));
-
-      // Get sorted unique dates
-      const sortedDates = entries.map((e) => e.entry_date);
-
       const wb = XLSX.utils.book_new();
 
       for (const block of BLOCKS) {
         const blockData = dataMap[block.id] || {};
+        const sortedDates = entries.map((e) => e.entry_date);
 
-        // Filter dates that have any data for this block
         const datesWithData = sortedDates.filter((date) => {
           const eid = entries.find((e) => e.entry_date === date)?.id;
           if (!eid) return false;
           return block.questions.some((_, qIdx) => blockData[qIdx]?.[eid] !== undefined);
         });
 
-        if (datesWithData.length === 0) {
-          // Empty sheet with just question labels
-          const sheetData = [['Критерий']];
-          block.questions.forEach((q) => sheetData.push([q]));
-          const ws = XLSX.utils.aoa_to_sheet(sheetData);
-          XLSX.utils.book_append_sheet(wb, ws, `Блок ${block.id}`);
-          continue;
-        }
-
         // Header row
-        const header = ['Критерий', ...datesWithData];
+        const header = ['Критерий', ...(datesWithData.length ? datesWithData : [])];
 
-        // Data rows
+        // Question rows
         const rows = block.questions.map((q, qIdx) => {
           const row: (string | number)[] = [q];
           datesWithData.forEach((date) => {
@@ -152,24 +184,35 @@ const PatientDetailDoctor = () => {
           return row;
         });
 
-        const sheetData = [header, ...rows];
+        // Sum row
+        const sumRow: (string | number)[] = ['Сумма блока'];
+        datesWithData.forEach((date) => {
+          const eid = entries.find((e) => e.entry_date === date)?.id;
+          if (eid) {
+            const s = summaryMap.get(eid);
+            const key = `block${block.id}_sum`;
+            sumRow.push(s?.[key] ?? '');
+          } else {
+            sumRow.push('');
+          }
+        });
+
+        const sheetData = [header, ...rows, sumRow];
         const ws = XLSX.utils.aoa_to_sheet(sheetData);
-
-        // Auto-width for first column
         ws['!cols'] = [{ wch: 60 }, ...datesWithData.map(() => ({ wch: 12 }))];
-
         XLSX.utils.book_append_sheet(wb, ws, `Блок ${block.id}`);
       }
 
       const safeName = patientName.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_');
-      XLSX.writeFile(wb, `PatientData_${safeName}_ALL.xlsx`);
+      const fileSuffix = isAll ? 'ALL' : `${fromDate}_${toDate}`;
+      XLSX.writeFile(wb, `PatientData_${safeName}_${fileSuffix}.xlsx`);
       toast.success('Файл скачан');
     } catch (e: any) {
       toast.error(e.message || 'Ошибка экспорта');
     } finally {
       setExporting(false);
     }
-  }, [patientId, patientName]);
+  }, [patientId, patientName, exportRangeIdx, useCustomRange, customFrom, customTo]);
 
   return (
     <div className="p-4 pb-20 space-y-4">
@@ -196,11 +239,24 @@ const PatientDetailDoctor = () => {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="center">
-            <Calendar mode="single" selected={selectedDate} onSelect={(d) => d && setSelectedDate(d)} initialFocus />
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(d) => d && setSelectedDate(d)}
+              disabled={(d) => d > today}
+              className="p-3 pointer-events-auto"
+              initialFocus
+            />
           </PopoverContent>
         </Popover>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
-          <ChevronRight className="h-4 w-4" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          disabled={atToday}
+          onClick={() => !atToday && setSelectedDate(addDays(selectedDate, 1))}
+        >
+          <ChevronLeft className="h-4 w-4 rotate-180" />
         </Button>
       </div>
 
@@ -217,10 +273,7 @@ const PatientDetailDoctor = () => {
           return (
             <Card
               key={block.id}
-              className={cn(
-                'transition-shadow',
-                isFullWidth && 'col-span-2'
-              )}
+              className={cn('transition-shadow', isFullWidth && 'col-span-2')}
             >
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex-1 min-w-0">
@@ -246,21 +299,92 @@ const PatientDetailDoctor = () => {
         })}
       </div>
 
-      {/* Export button */}
-      <Button
-        className="w-full gap-2"
-        onClick={handleExport}
-        disabled={exporting || !hasData}
-      >
-        <Download className="h-4 w-4" />
-        {exporting ? 'Экспорт…' : 'Скачать данные'}
-      </Button>
+      {/* Export range controls */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground">Экспорт данных</h3>
+        <div className="flex flex-wrap gap-2">
+          {EXPORT_RANGES.map((r, i) => (
+            <Button
+              key={r.label}
+              variant={!useCustomRange && exportRangeIdx === i ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs"
+              onClick={() => {
+                setExportRangeIdx(i);
+                setUseCustomRange(false);
+              }}
+            >
+              {r.label}
+            </Button>
+          ))}
+          <Button
+            variant={useCustomRange ? 'default' : 'outline'}
+            size="sm"
+            className="text-xs"
+            onClick={() => setUseCustomRange(true)}
+          >
+            Свой период
+          </Button>
+        </div>
 
-      {!hasData && (
-        <p className="text-xs text-muted-foreground text-center">
-          Нет сохранённых записей для экспорта.
-        </p>
-      )}
+        {useCustomRange && (
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs flex-1">
+                  {customFrom ? format(customFrom, 'd MMM yyyy', { locale: ru }) : 'Дата с'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customFrom}
+                  onSelect={setCustomFrom}
+                  disabled={(d) => d > today}
+                  className="p-3 pointer-events-auto"
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs flex-1">
+                  {customTo ? format(customTo, 'd MMM yyyy', { locale: ru }) : 'Дата по'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={customTo}
+                  onSelect={setCustomTo}
+                  disabled={(d) => d > today}
+                  className="p-3 pointer-events-auto"
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+
+        {useCustomRange && customFrom && customTo && customFrom > customTo && (
+          <p className="text-xs text-destructive">«Дата с» должна быть раньше «Дата по»</p>
+        )}
+
+        <Button
+          className="w-full gap-2"
+          onClick={handleExport}
+          disabled={exporting || !hasData || (useCustomRange && !isCustomValid)}
+        >
+          <Download className="h-4 w-4" />
+          {exporting ? 'Экспорт…' : 'Скачать данные'}
+        </Button>
+
+        {!hasData && (
+          <p className="text-xs text-muted-foreground text-center">
+            Нет сохранённых записей для экспорта.
+          </p>
+        )}
+      </div>
     </div>
   );
 };
