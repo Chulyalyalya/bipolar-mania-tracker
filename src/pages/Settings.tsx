@@ -92,6 +92,7 @@ const Settings = () => {
       {role === 'patient' && (
         <>
           <button
+            type="button"
             onClick={() => { console.log('OPEN_ADD_DOCTOR'); setSheetOpen(true); }}
             className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
