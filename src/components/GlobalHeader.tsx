@@ -1,16 +1,25 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Copy, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const GlobalHeader = () => {
   const { profile, role, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const copyCode = () => {
     if (profile?.doctor_code) {
       navigator.clipboard.writeText(profile.doctor_code);
       toast.success('Код скопирован');
     }
+  };
+
+  const handleLogout = async () => {
+    console.log('LOGOUT');
+    console.log('LOGOUT_CLICK');
+    alert('LOGOUT_CLICK');
+    await signOut();
+    navigate('/auth', { replace: true });
   };
 
   return (
@@ -28,9 +37,13 @@ const GlobalHeader = () => {
             <Copy className="h-3 w-3" />
           </button>
         )}
-        <Button variant="ghost" size="icon" onClick={() => { console.log('LOGOUT'); signOut(); }} className="h-8 w-8 rounded-xl hover:bg-card/60">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="h-8 w-8 rounded-xl hover:bg-card/60 inline-flex items-center justify-center"
+        >
           <LogOut className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
     </header>
   );

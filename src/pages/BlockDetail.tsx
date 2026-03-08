@@ -140,7 +140,7 @@ const BlockDetail = () => {
     });
   };
 
-  const handleSave = async () => {
+  const handleSaveBlock = async () => {
     if (!user || futureDate) return;
     const actionTag = entryId ? 'UPDATE_ENTRY' : 'SAVE_ENTRY';
     console.log(actionTag, { blockId: block.id, scores, total });
@@ -231,7 +231,7 @@ const BlockDetail = () => {
   };
 
   return (
-    <div className="relative z-0 p-4 pb-20 space-y-4">
+    <div className="relative isolate p-4 pb-24 space-y-4">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => navigate('/')}>
           <ChevronLeft className="h-4 w-4" />
@@ -285,21 +285,18 @@ const BlockDetail = () => {
       </div>
 
       {!futureDate && (
-        <div className="relative z-10">
+        <div className="relative z-[120] pointer-events-auto">
           <button
             type="button"
-            onPointerDown={() => console.log('SAVE_BUTTON_POINTER_DOWN')}
-            onClick={(e) => {
-              console.log('SAVE_BUTTON_CLICKED', { target: (e.target as HTMLElement).tagName, saving });
-              handleSave();
+            onClick={() => {
+              console.log('SAVE_CLICK');
+              alert('SAVE_CLICK');
+              void handleSaveBlock();
             }}
             disabled={saving}
-            className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 pointer-events-auto"
+            className="relative z-[121] pointer-events-auto flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            <span>{entryId ? 'Обновить' : 'Сохранить'}</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/20 pointer-events-none">
-              <ChevronLeft className="h-3.5 w-3.5 text-background rotate-180" />
-            </div>
+            {entryId ? 'Обновить' : 'Сохранить'}
           </button>
         </div>
       )}
