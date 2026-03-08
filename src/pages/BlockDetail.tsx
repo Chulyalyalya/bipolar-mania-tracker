@@ -45,21 +45,31 @@ const BlockDetail = () => {
   useEffect(() => {
     if (!user || !block) return;
     const load = async () => {
-      const { data: entry } = await supabase
+      const { data: entry, error: entryError } = await supabase
         .from('entries')
         .select('id, last_edited_at')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
-        .single();
+        .maybeSingle();
+
+      if (entryError) {
+        console.error('LOAD_ENTRY_ERROR', entryError);
+        return;
+      }
 
       if (entry) {
         setEntryId(entry.id);
         setLastEdited(entry.last_edited_at);
-        const { data: answers } = await supabase
+        const { data: answers, error: answersError } = await supabase
           .from('mania_answers')
           .select('question_id, score')
           .eq('entry_id', entry.id)
           .eq('block_id', block.id);
+
+        if (answersError) {
+          console.error('LOAD_ANSWERS_ERROR', answersError);
+          return;
+        }
 
         const s = new Array(block.questions.length).fill(0);
         answers?.forEach((a) => {
@@ -132,7 +142,8 @@ const BlockDetail = () => {
 
   const handleSave = async () => {
     if (!user || futureDate) return;
-    console.log(entryId ? 'UPDATE_ENTRY' : 'SAVE_ENTRY', { blockId: block.id, scores, total });
+    const actionTag = entryId ? 'UPDATE_ENTRY' : 'SAVE_ENTRY';
+    console.log(actionTag, { blockId: block.id, scores, total });
     setSaving(true);
     try {
       let eid = entryId;
@@ -147,21 +158,23 @@ const BlockDetail = () => {
           )
           .select('id')
           .single();
-        if (error) throw error;
+        if (error || !data?.id) throw error || new Error('Не удалось создать запись');
         eid = data.id;
         setEntryId(eid);
       } else {
-        await supabase
+        const { error: updateEntryError } = await supabase
           .from('entries')
           .update({ last_edited_at: now } as any)
           .eq('id', eid);
+        if (updateEntryError) throw updateEntryError;
       }
 
-      await supabase
+      const { error: deleteAnswersError } = await supabase
         .from('mania_answers')
         .delete()
         .eq('entry_id', eid!)
         .eq('block_id', block.id);
+      if (deleteAnswersError) throw deleteAnswersError;
 
       const rows = scores.map((score, qIdx) => ({
         entry_id: eid!,
@@ -175,10 +188,11 @@ const BlockDetail = () => {
         .insert(rows);
       if (insertErr) throw insertErr;
 
-      const { data: allAnswers } = await supabase
+      const { data: allAnswers, error: allAnswersError } = await supabase
         .from('mania_answers')
         .select('block_id, score')
         .eq('entry_id', eid!);
+      if (allAnswersError) throw allAnswersError;
 
       const blockSums: Record<string, number> = {};
       for (let i = 1; i <= 7; i++) blockSums[`block${i}_sum`] = 0;
@@ -189,18 +203,20 @@ const BlockDetail = () => {
 
       const riskCount = Object.values(blockSums).filter((v) => v > 4).length;
 
-      await supabase
+      const { error: summaryUpsertError } = await supabase
         .from('entry_summaries')
         .upsert({
           entry_id: eid!,
           ...blockSums,
           total_risk_blocks_count: riskCount,
         } as any, { onConflict: 'entry_id' });
+      if (summaryUpsertError) throw summaryUpsertError;
 
       setLastEdited(now);
       toast.success('Сохранено');
-      loadChart();
+      await loadChart();
     } catch (e: any) {
+      console.error(`${actionTag}_ERROR`, e);
       toast.error(e.message || 'Ошибка сохранения');
     } finally {
       setSaving(false);
