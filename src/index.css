@@ -123,11 +123,13 @@
     border-color: hsl(var(--glass-border));
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
+    isolation: isolate;
   }
 
   .glass-surface {
     background: hsl(var(--glass-bg));
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
+    isolation: isolate;
   }
 }

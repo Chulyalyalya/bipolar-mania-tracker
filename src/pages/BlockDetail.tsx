@@ -250,11 +250,11 @@ const BlockDetail = () => {
         </div>
       )}
 
-      <div className="space-y-2.5">
+      <div className="relative z-10 space-y-2.5">
         {block.questions.map((q, qIdx) => (
-          <div key={qIdx} className="glass-card p-4">
+          <div key={qIdx} className="glass-card p-4 relative z-0">
             <p className="text-xs text-foreground mb-2.5 leading-relaxed">{q}</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 relative z-10">
               {[0, 1, 2, 3, 4].map((val) => (
                 <button
                   key={val}
@@ -262,7 +262,7 @@ const BlockDetail = () => {
                   onClick={() => { if (!futureDate) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
                   disabled={futureDate}
                   className={cn(
-                    'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all',
+                    'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all pointer-events-auto',
                     scores[qIdx] === val
                       ? 'bg-foreground border-foreground text-background shadow-sm'
                       : 'border-border/30 text-muted-foreground hover:border-primary/50 hover:bg-card/60',
