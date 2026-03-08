@@ -149,10 +149,6 @@ const Settings = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Patient export modal */}
-      {role === 'patient' && (
-        <PrepareExportModal open={exportOpen} onOpenChange={setExportOpen} />
-      )}
     </div>
   );
 };
