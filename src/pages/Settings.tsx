@@ -13,7 +13,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import PrepareExportModal from '@/components/PrepareExportModal';
+import PatientExportSection from '@/components/PatientExportSection';
 
 const Settings = () => {
   const { profile, role, signOut } = useAuth();
@@ -21,7 +21,6 @@ const Settings = () => {
   const [doctorCode, setDoctorCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [connecting, setConnecting] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
 
   const handleConnect = async () => {
     const code = doctorCode.trim().toUpperCase();
@@ -96,9 +95,7 @@ const Settings = () => {
             Добавить врача
           </Button>
 
-          <Button variant="outline" className="w-full" onClick={() => setExportOpen(true)}>
-            Подготовить данные к приёму
-          </Button>
+          <PatientExportSection />
         </>
       )}
 
@@ -152,10 +149,6 @@ const Settings = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Patient export modal */}
-      {role === 'patient' && (
-        <PrepareExportModal open={exportOpen} onOpenChange={setExportOpen} />
-      )}
     </div>
   );
 };
