@@ -266,7 +266,7 @@ const RegisterForm = ({
         Уже есть аккаунт?{' '}
         <button
           type="button"
-          onClick={onSwitchLogin}
+          onClick={() => { console.log('SWITCH_TO_LOGIN'); onSwitchLogin(); }}
           className="font-medium text-foreground underline hover:opacity-70 transition-opacity"
         >
           Войти
