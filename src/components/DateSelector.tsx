@@ -17,7 +17,7 @@ const DateSelector = () => {
         variant="ghost"
         size="icon"
         className="h-8 w-8 rounded-xl"
-        onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+        onClick={() => { console.log('DATE_CHANGE', 'prev'); setSelectedDate(addDays(selectedDate, -1)); }}
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
