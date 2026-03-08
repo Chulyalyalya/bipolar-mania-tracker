@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,16 +11,84 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import PatientExportSection from '@/components/PatientExportSection';
 
+interface LinkedDoctor {
+  linkId: string;
+  doctorUserId: string;
+  fullName: string;
+  doctorCode: string | null;
+}
+
 const Settings = () => {
-  const { profile, role, signOut } = useAuth();
+  const { profile, role, user, signOut } = useAuth();
   const navigate = useNavigate();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [doctorCode, setDoctorCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [connecting, setConnecting] = useState(false);
+
+  const [linkedDoctors, setLinkedDoctors] = useState<LinkedDoctor[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+
+  const [removingDoctor, setRemovingDoctor] = useState<LinkedDoctor | null>(null);
+
+  const fetchLinkedDoctors = useCallback(async () => {
+    if (!user || role !== 'patient') return;
+    setLoadingDoctors(true);
+    try {
+      const { data: links } = await supabase
+        .from('doctor_patient_links')
+        .select('id, doctor_user_id')
+        .eq('patient_user_id', user.id)
+        .eq('status', 'active' as any);
+
+      if (!links?.length) {
+        setLinkedDoctors([]);
+        setLoadingDoctors(false);
+        return;
+      }
+
+      const doctorIds = links.map((l) => l.doctor_user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, doctor_code')
+        .in('id', doctorIds);
+
+      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+
+      const doctors: LinkedDoctor[] = links.map((l) => {
+        const p = profileMap.get(l.doctor_user_id);
+        return {
+          linkId: l.id,
+          doctorUserId: l.doctor_user_id,
+          fullName: p?.full_name || 'Врач',
+          doctorCode: p?.doctor_code ?? null,
+        };
+      });
+
+      setLinkedDoctors(doctors);
+    } catch (e) {
+      console.error('FETCH_DOCTORS_ERROR', e);
+    } finally {
+      setLoadingDoctors(false);
+    }
+  }, [user, role]);
+
+  useEffect(() => {
+    fetchLinkedDoctors();
+  }, [fetchLinkedDoctors]);
 
   const handleConnect = async () => {
     console.log('CONNECT_DOCTOR', { doctorCode });
@@ -44,14 +112,17 @@ const Settings = () => {
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Не авторизован');
+      // Check if already linked
+      const alreadyLinked = linkedDoctors.some(
+        (d) => d.doctorUserId === doctorProfile.id
+      );
+      if (alreadyLinked) {
+        setCodeError('Этот врач уже добавлен');
+        setConnecting(false);
+        return;
+      }
 
-      await supabase
-        .from('doctor_patient_links')
-        .update({ status: 'revoked' as any })
-        .eq('patient_user_id', user.id)
-        .eq('status', 'active' as any);
+      if (!user) throw new Error('Не авторизован');
 
       const { error: linkErr } = await supabase
         .from('doctor_patient_links')
@@ -66,10 +137,28 @@ const Settings = () => {
       toast.success('Врач подключён');
       setSheetOpen(false);
       setDoctorCode('');
+      await fetchLinkedDoctors();
     } catch (e: any) {
       toast.error(e.message || 'Ошибка подключения');
     } finally {
       setConnecting(false);
+    }
+  };
+
+  const handleRemoveDoctor = async () => {
+    if (!removingDoctor) return;
+    try {
+      await supabase
+        .from('doctor_patient_links')
+        .update({ status: 'revoked' as any })
+        .eq('id', removingDoctor.linkId);
+
+      setLinkedDoctors((prev) => prev.filter((d) => d.linkId !== removingDoctor.linkId));
+      toast.success('Врач удалён');
+    } catch (e: any) {
+      toast.error(e.message || 'Ошибка удаления');
+    } finally {
+      setRemovingDoctor(null);
     }
   };
 
@@ -101,16 +190,40 @@ const Settings = () => {
             <p><span className="text-muted-foreground">Код:</span> <span className="font-mono">{profile.doctor_code}</span></p>
           )}
         </div>
+
+        {/* Linked doctors list for patients */}
+        {role === 'patient' && linkedDoctors.length > 0 && (
+          <div className="space-y-1.5 pt-1">
+            {linkedDoctors.map((doc) => (
+              <div key={doc.linkId} className="flex items-center justify-between text-sm">
+                <p>
+                  <span className="text-muted-foreground">Врач:</span>{' '}
+                  {doc.fullName}
+                  {doc.doctorCode && (
+                    <span className="text-muted-foreground font-mono text-xs ml-1">({doc.doctorCode})</span>
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setRemovingDoctor(doc)}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors ml-2 shrink-0"
+                >
+                  Удалить
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {role === 'patient' && (
         <>
           <button
             type="button"
-            onClick={() => { console.log('OPEN_ADD_DOCTOR'); setSheetOpen(true); }}
+            onClick={() => { setSheetOpen(true); }}
             className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
-            Добавить врача
+            {linkedDoctors.length > 0 ? 'Добавить ещё одного врача' : 'Добавить врача'}
           </button>
 
           <PatientExportSection />
@@ -175,9 +288,24 @@ const Settings = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Remove doctor confirmation */}
+      <AlertDialog open={!!removingDoctor} onOpenChange={(open) => !open && setRemovingDoctor(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить врача?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Врач больше не будет иметь доступ к вашим данным.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveDoctor}>Удалить</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
 export default Settings;
-
