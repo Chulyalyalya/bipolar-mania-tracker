@@ -332,10 +332,10 @@ const Auth = () => {
 
 
 
+
+
           // auto-confirmed
-        } else {setConfirmationEmail(data.email);setShowConfirmation(true);}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}}, []);const handleForgot = async (e: React.FormEvent) => {e.preventDefault();
-    setLoading(true);
-    try {
+        } else {setConfirmationEmail(data.email);setShowConfirmation(true);}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}}, []);const handleForgot = async (e: React.FormEvent) => {e.preventDefault();setLoading(true);try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
         redirectTo: `${window.location.origin}/reset-password`
       });
@@ -419,8 +419,8 @@ const Auth = () => {
     <Shell>
       <div className="space-y-6">
         <div className="flex items-baseline justify-between">
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">Bipolar 
-Mania
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">Bipolar  
+Mania 
 Tracker
 </h1>
           <div className="flex gap-4">
