@@ -44,6 +44,7 @@ export type Database = {
       entries: {
         Row: {
           created_at: string
+          daily_note: string | null
           entered_at: string | null
           entry_date: string
           id: string
@@ -53,6 +54,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          daily_note?: string | null
           entered_at?: string | null
           entry_date: string
           id?: string
@@ -62,6 +64,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          daily_note?: string | null
           entered_at?: string | null
           entry_date?: string
           id?: string
