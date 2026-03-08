@@ -7,48 +7,48 @@ import type { AppRole } from '@/types';
 /* ─── Shared UI ─── */
 
 const fieldBase =
-  'flex items-center gap-3 rounded-2xl border px-4 py-3 transition-colors';
+'flex items-center gap-3 rounded-2xl border px-4 py-3 transition-colors';
 const fieldNormal =
-  'border-border/40 bg-card/60 backdrop-blur-sm hover:border-border focus-within:border-primary/50 focus-within:bg-card/80';
+'border-border/40 bg-card/60 backdrop-blur-sm hover:border-border focus-within:border-primary/50 focus-within:bg-card/80';
 const fieldError = 'border-destructive/50 bg-destructive/5';
 
 const inputClass =
-  'flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none w-full';
+'flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none w-full';
 
-const Shell = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex min-h-screen items-center justify-center bg-background p-4">
+const Shell = ({ children }: {children: React.ReactNode;}) =>
+<div className="flex min-h-screen items-center justify-center bg-background p-4">
     <div className="w-full max-w-[400px]">
       <div className="rounded-3xl border border-border/30 bg-card/50 p-8 shadow-lg backdrop-blur-xl">
         {children}
       </div>
     </div>
-  </div>
-);
+  </div>;
 
-const SubmitButton = ({ loading, label }: { loading: boolean; label: string }) => (
-  <button
-    type="submit"
-    disabled={loading}
-    className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
-  >
+
+const SubmitButton = ({ loading, label }: {loading: boolean;label: string;}) =>
+<button
+  type="submit"
+  disabled={loading}
+  className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50">
+  
     <span>{label}</span>
     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/20">
       <ArrowRight className="h-3.5 w-3.5 text-background" />
     </div>
-  </button>
-);
+  </button>;
+
 
 /* ─── Login Form ─── */
 
 const LoginForm = ({
   loading,
   onSubmit,
-  onForgot,
-}: {
-  loading: boolean;
-  onSubmit: (email: string, password: string) => void;
-  onForgot: () => void;
-}) => {
+  onForgot
+
+
+
+
+}: {loading: boolean;onSubmit: (email: string, password: string) => void;onForgot: () => void;}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -58,7 +58,7 @@ const LoginForm = ({
       console.log('LOGIN_CLICK', { email });
       onSubmit(email, password);
     },
-    [email, password, onSubmit],
+    [email, password, onSubmit]
   );
 
   return (
@@ -79,8 +79,8 @@ const LoginForm = ({
           onChange={(e) => setEmail(e.target.value)}
           placeholder="e-mail address"
           required
-          className={inputClass}
-        />
+          className={inputClass} />
+        
       </div>
 
       <div className="space-y-1.5">
@@ -97,14 +97,14 @@ const LoginForm = ({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="password"
               required
-              className={inputClass}
-            />
+              className={inputClass} />
+            
           </div>
           <button
             type="button"
             onClick={onForgot}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-lg border border-border/40 bg-card/80 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-          >
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-lg border border-border/40 bg-card/80 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+            
             забыл
           </button>
         </div>
@@ -113,8 +113,8 @@ const LoginForm = ({
       <div className="pt-1">
         <SubmitButton loading={loading} label="Войти" />
       </div>
-    </form>
-  );
+    </form>);
+
 };
 
 /* ─── Register Form ─── */
@@ -129,12 +129,12 @@ interface FieldErrors {
 const RegisterForm = ({
   loading,
   onSubmit,
-  onSwitchLogin,
-}: {
-  loading: boolean;
-  onSubmit: (data: { email: string; password: string; fullName: string; role: AppRole }) => void;
-  onSwitchLogin: () => void;
-}) => {
+  onSwitchLogin
+
+
+
+
+}: {loading: boolean;onSubmit: (data: {email: string;password: string;fullName: string;role: AppRole;}) => void;onSwitchLogin: () => void;}) => {
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -142,11 +142,11 @@ const RegisterForm = ({
   const [errors, setErrors] = useState<FieldErrors>({});
 
   const clearError = (field: keyof FieldErrors) =>
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
+  setErrors((prev) => {
+    const next = { ...prev };
+    delete next[field];
+    return next;
+  });
 
   const handle = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,22 +171,22 @@ const RegisterForm = ({
           </p>
           <div className="grid grid-cols-2 gap-2">
             {([
-              { value: 'doctor' as AppRole, label: 'Врач' },
-              { value: 'patient' as AppRole, label: 'Пациент' },
-            ] as const).map((r) => (
-              <button
-                key={r.value}
-                type="button"
-                onClick={() => { setSelectedRole(r.value); clearError('role'); }}
-                className={`rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all ${
-                  selectedRole === r.value
-                    ? 'border-primary/50 bg-primary/10 text-foreground shadow-sm'
-                    : `border-border/30 bg-card/40 text-muted-foreground hover:border-border/60 hover:bg-card/60 ${errors.role ? 'border-destructive/40' : ''}`
-                }`}
-              >
+            { value: 'doctor' as AppRole, label: 'Врач' },
+            { value: 'patient' as AppRole, label: 'Пациент' }] as
+            const).map((r) =>
+            <button
+              key={r.value}
+              type="button"
+              onClick={() => {setSelectedRole(r.value);clearError('role');}}
+              className={`rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all ${
+              selectedRole === r.value ?
+              'border-primary/50 bg-primary/10 text-foreground shadow-sm' :
+              `border-border/30 bg-card/40 text-muted-foreground hover:border-border/60 hover:bg-card/60 ${errors.role ? 'border-destructive/40' : ''}`}`
+              }>
+              
                 {r.label}
               </button>
-            ))}
+            )}
           </div>
           {errors.role && <p className="text-[11px] text-destructive">{errors.role}</p>}
         </div>
@@ -202,10 +202,10 @@ const RegisterForm = ({
               type="text"
               autoComplete="name"
               value={fullName}
-              onChange={(e) => { setFullName(e.target.value); clearError('fullName'); }}
+              onChange={(e) => {setFullName(e.target.value);clearError('fullName');}}
               placeholder="Полное имя"
-              className={inputClass}
-            />
+              className={inputClass} />
+            
           </div>
           {errors.fullName && <p className="text-[11px] text-destructive mt-1">{errors.fullName}</p>}
         </div>
@@ -225,10 +225,10 @@ const RegisterForm = ({
               autoCorrect="off"
               spellCheck={false}
               value={email}
-              onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
+              onChange={(e) => {setEmail(e.target.value);clearError('email');}}
               placeholder="e-mail address"
-              className={inputClass}
-            />
+              className={inputClass} />
+            
           </div>
           {errors.email && <p className="text-[11px] text-destructive mt-1">{errors.email}</p>}
         </div>
@@ -244,17 +244,17 @@ const RegisterForm = ({
               type="password"
               autoComplete="new-password"
               value={password}
-              onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
+              onChange={(e) => {setPassword(e.target.value);clearError('password');}}
               placeholder="пароль"
               minLength={8}
-              className={inputClass}
-            />
+              className={inputClass} />
+            
           </div>
-          {errors.password ? (
-            <p className="text-[11px] text-destructive">{errors.password}</p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground/50 pl-1">Минимум 8 символов</p>
-          )}
+          {errors.password ?
+          <p className="text-[11px] text-destructive">{errors.password}</p> :
+
+          <p className="text-[11px] text-muted-foreground/50 pl-1">Минимум 8 символов</p>
+          }
         </div>
 
         <div className="pt-1">
@@ -266,14 +266,14 @@ const RegisterForm = ({
         Уже есть аккаунт?{' '}
         <button
           type="button"
-          onClick={() => { console.log('SWITCH_TO_LOGIN'); onSwitchLogin(); }}
-          className="font-medium text-foreground underline hover:opacity-70 transition-opacity"
-        >
+          onClick={() => {console.log('SWITCH_TO_LOGIN');onSwitchLogin();}}
+          className="font-medium text-foreground underline hover:opacity-70 transition-opacity">
+          
           Войти
         </button>
       </p>
-    </>
-  );
+    </>);
+
 };
 
 /* ─── Main Auth Page ─── */
@@ -299,7 +299,7 @@ const Auth = () => {
   }, []);
 
   const handleRegister = useCallback(
-    async (data: { email: string; password: string; fullName: string; role: AppRole }) => {
+    async (data: {email: string;password: string;fullName: string;role: AppRole;}) => {
       setLoading(true);
       try {
         const { data: result, error } = await supabase.auth.signUp({
@@ -307,8 +307,8 @@ const Auth = () => {
           password: data.password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: data.fullName },
-          },
+            data: { full_name: data.fullName }
+          }
         });
         if (error) throw error;
 
@@ -318,26 +318,26 @@ const Auth = () => {
         }
 
         if (result.session) {
-          // auto-confirmed
-        } else {
-          setConfirmationEmail(data.email);
-          setShowConfirmation(true);
-        }
-      } catch (err: any) {
-        toast.error(err.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
-  );
 
-  const handleForgot = async (e: React.FormEvent) => {
-    e.preventDefault();
+
+
+
+
+
+
+
+
+
+
+
+
+
+          // auto-confirmed
+        } else {setConfirmationEmail(data.email);setShowConfirmation(true);}} catch (err: any) {toast.error(err.message);} finally {setLoading(false);}}, []);const handleForgot = async (e: React.FormEvent) => {e.preventDefault();
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/reset-password`
       });
       if (error) throw error;
       toast.success('Ссылка для сброса отправлена на почту');
@@ -366,15 +366,15 @@ const Auth = () => {
             </p>
           </div>
           <button
-            onClick={() => { setShowConfirmation(false); setTab('login'); }}
-            className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
-          >
+            onClick={() => {setShowConfirmation(false);setTab('login');}}
+            className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
+            
             Перейти ко входу
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
-      </Shell>
-    );
+      </Shell>);
+
   }
 
   // ── Forgot ──
@@ -397,21 +397,21 @@ const Auth = () => {
                 onChange={(e) => setForgotEmail(e.target.value)}
                 placeholder="e-mail address"
                 required
-                className={inputClass}
-              />
+                className={inputClass} />
+              
             </div>
             <SubmitButton loading={loading} label="Отправить ссылку" />
             <button
               type="button"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setShowForgot(false)}
-            >
+              onClick={() => setShowForgot(false)}>
+              
               ← Назад
             </button>
           </form>
         </div>
-      </Shell>
-    );
+      </Shell>);
+
   }
 
   // ── Main ──
@@ -419,53 +419,53 @@ const Auth = () => {
     <Shell>
       <div className="space-y-6">
         <div className="flex items-baseline justify-between">
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">
-            Bipolar Tracker
-          </h1>
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">Bipolar 
+Mania
+Tracker
+</h1>
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => { console.log('SWITCH_TO_LOGIN'); setTab('login'); }}
-              className={`text-sm font-medium transition-colors ${
-                tab === 'login' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
-              }`}
-            >
+            <button type="button"
+            onClick={() => {console.log('SWITCH_TO_LOGIN');setTab('login');}}
+            className={`text-sm font-medium transition-colors ${
+            tab === 'login' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'}`
+            }>
+              
               Вход
             </button>
             <button
               type="button"
-              onClick={() => { console.log('SWITCH_TO_REGISTER'); setTab('register'); }}
+              onClick={() => {console.log('SWITCH_TO_REGISTER');setTab('register');}}
               className={`text-sm font-medium transition-colors ${
-                tab === 'register' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
-              }`}
-            >
+              tab === 'register' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'}`
+              }>
+              
               Регистрация
             </button>
           </div>
         </div>
 
-        {tab === 'login' && (
-          <LoginForm
-            loading={loading}
-            onSubmit={handleLogin}
-            onForgot={() => setShowForgot(true)}
-          />
-        )}
+        {tab === 'login' &&
+        <LoginForm
+          loading={loading}
+          onSubmit={handleLogin}
+          onForgot={() => setShowForgot(true)} />
 
-        {tab === 'register' && (
-          <RegisterForm
-            loading={loading}
-            onSubmit={handleRegister}
-            onSwitchLogin={() => setTab('login')}
-          />
-        )}
+        }
+
+        {tab === 'register' &&
+        <RegisterForm
+          loading={loading}
+          onSubmit={handleRegister}
+          onSwitchLogin={() => setTab('login')} />
+
+        }
 
         <p className="text-center text-[11px] text-muted-foreground/50">
           Clinical daily tracking · Private by default
         </p>
       </div>
-    </Shell>
-  );
+    </Shell>);
+
 };
 
 export default Auth;
