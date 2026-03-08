@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { isFuture, isToday } from 'date-fns';
 
-const DailyNotes = () => {
+const DailyNotes = ({ className }: { className?: string }) => {
   const { user } = useAuth();
   const { selectedDate, dateStr } = useSelectedDate();
   const [note, setNote] = useState('');
