@@ -425,7 +425,7 @@ const Auth = () => {
           <div className="flex gap-4">
             <button
               type="button"
-              onClick={() => setTab('login')}
+              onClick={() => { console.log('SWITCH_TO_LOGIN'); setTab('login'); }}
               className={`text-sm font-medium transition-colors ${
                 tab === 'login' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
               }`}
@@ -434,7 +434,7 @@ const Auth = () => {
             </button>
             <button
               type="button"
-              onClick={() => setTab('register')}
+              onClick={() => { console.log('SWITCH_TO_REGISTER'); setTab('register'); }}
               className={`text-sm font-medium transition-colors ${
                 tab === 'register' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
               }`}
