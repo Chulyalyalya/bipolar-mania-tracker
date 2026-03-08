@@ -104,6 +104,7 @@ const Settings = () => {
       )}
 
       <button
+        type="button"
         onClick={() => { console.log('LOGOUT'); signOut(); }}
         className="flex w-full items-center justify-center rounded-2xl border border-border/30 bg-card/40 backdrop-blur-sm px-5 py-3 text-sm font-medium text-foreground transition-all hover:bg-card/60"
       >
