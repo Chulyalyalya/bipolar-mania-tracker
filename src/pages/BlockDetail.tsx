@@ -290,13 +290,12 @@ const BlockDetail = () => {
             type="button"
             onClick={() => {
               console.log('SAVE_CLICK');
-              alert('SAVE_CLICK');
               void handleSaveBlock();
             }}
             disabled={saving}
-            className="relative z-[121] pointer-events-auto flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="relative z-10 pointer-events-auto flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {entryId ? 'Обновить' : 'Сохранить'}
+            {saving ? 'Сохранение…' : entryId ? 'Обновить' : 'Сохранить'}
           </button>
         </div>
       )}
