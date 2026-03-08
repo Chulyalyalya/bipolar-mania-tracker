@@ -44,22 +44,28 @@ export type Database = {
       entries: {
         Row: {
           created_at: string
+          entered_at: string | null
           entry_date: string
           id: string
+          last_edited_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          entered_at?: string | null
           entry_date: string
           id?: string
+          last_edited_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          entered_at?: string | null
           entry_date?: string
           id?: string
+          last_edited_at?: string | null
           updated_at?: string
           user_id?: string
         }
