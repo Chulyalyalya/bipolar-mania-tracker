@@ -55,6 +55,7 @@ const LoginForm = ({
   const handle = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      console.log('LOGIN_CLICK', { email });
       onSubmit(email, password);
     },
     [email, password, onSubmit],
@@ -149,6 +150,7 @@ const RegisterForm = ({
 
   const handle = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('REGISTER_CLICK', { email, fullName, role: selectedRole });
     const newErrors: FieldErrors = {};
     if (!selectedRole) newErrors.role = 'Выберите роль';
     if (!fullName.trim()) newErrors.fullName = 'Введите полное имя';
@@ -264,7 +266,7 @@ const RegisterForm = ({
         Уже есть аккаунт?{' '}
         <button
           type="button"
-          onClick={onSwitchLogin}
+          onClick={() => { console.log('SWITCH_TO_LOGIN'); onSwitchLogin(); }}
           className="font-medium text-foreground underline hover:opacity-70 transition-opacity"
         >
           Войти
@@ -423,7 +425,7 @@ const Auth = () => {
           <div className="flex gap-4">
             <button
               type="button"
-              onClick={() => setTab('login')}
+              onClick={() => { console.log('SWITCH_TO_LOGIN'); setTab('login'); }}
               className={`text-sm font-medium transition-colors ${
                 tab === 'login' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
               }`}
@@ -432,7 +434,7 @@ const Auth = () => {
             </button>
             <button
               type="button"
-              onClick={() => setTab('register')}
+              onClick={() => { console.log('SWITCH_TO_REGISTER'); setTab('register'); }}
               className={`text-sm font-medium transition-colors ${
                 tab === 'register' ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
               }`}

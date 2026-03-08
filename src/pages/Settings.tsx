@@ -22,6 +22,7 @@ const Settings = () => {
   const [connecting, setConnecting] = useState(false);
 
   const handleConnect = async () => {
+    console.log('CONNECT_DOCTOR', { doctorCode });
     const code = doctorCode.trim().toUpperCase();
     if (code.length !== 9) {
       setCodeError('Код должен содержать 9 символов');
@@ -91,7 +92,7 @@ const Settings = () => {
       {role === 'patient' && (
         <>
           <button
-            onClick={() => setSheetOpen(true)}
+            onClick={() => { console.log('OPEN_ADD_DOCTOR'); setSheetOpen(true); }}
             className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
             Добавить врача
@@ -102,7 +103,7 @@ const Settings = () => {
       )}
 
       <button
-        onClick={signOut}
+        onClick={() => { console.log('LOGOUT'); signOut(); }}
         className="flex w-full items-center justify-center rounded-2xl border border-border/30 bg-card/40 backdrop-blur-sm px-5 py-3 text-sm font-medium text-foreground transition-all hover:bg-card/60"
       >
         Выйти

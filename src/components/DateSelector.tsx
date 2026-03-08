@@ -17,7 +17,7 @@ const DateSelector = () => {
         variant="ghost"
         size="icon"
         className="h-8 w-8 rounded-xl"
-        onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+        onClick={() => { console.log('DATE_CHANGE', 'prev'); setSelectedDate(addDays(selectedDate, -1)); }}
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
@@ -26,7 +26,7 @@ const DateSelector = () => {
         variant="ghost"
         size="sm"
         className="text-[11px] text-muted-foreground rounded-xl"
-        onClick={() => setSelectedDate(new Date())}
+        onClick={() => { console.log('DATE_CHANGE', 'today'); setSelectedDate(new Date()); }}
       >
         Сегодня
       </Button>
@@ -59,7 +59,7 @@ const DateSelector = () => {
         className="h-8 w-8 rounded-xl"
         disabled={atToday}
         onClick={() => {
-          if (!atToday) setSelectedDate(addDays(selectedDate, 1));
+          if (!atToday) { console.log('DATE_CHANGE', 'next'); setSelectedDate(addDays(selectedDate, 1)); }
         }}
       >
         <ChevronRight className="h-4 w-4" />

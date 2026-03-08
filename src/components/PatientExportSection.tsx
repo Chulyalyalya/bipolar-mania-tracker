@@ -45,6 +45,7 @@ const PatientExportSection = () => {
 
   const handleExport = async () => {
     if (!user) return;
+    console.log('EXPORT_START', { range, customFrom, customTo });
     setExporting(true);
     setNoData(false);
 
@@ -152,8 +153,10 @@ const PatientExportSection = () => {
         : `PatientData_${safeName}_${fromDate}_${toDate}.xlsx`;
 
       XLSX.writeFile(wb, fileName);
+      console.log('EXPORT_SUCCESS', fileName);
       toast.success('Файл скачан');
     } catch (e: any) {
+      console.error('EXPORT_ERROR', e);
       toast.error(e.message || 'Ошибка экспорта');
     } finally {
       setExporting(false);

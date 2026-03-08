@@ -101,7 +101,7 @@ const PatientHome = () => {
                     isFullWidth && 'col-span-2',
                     futureDate && 'opacity-50 pointer-events-none'
                   )}
-                  onClick={() => !futureDate && navigate(`/block/${block.id}`)}
+                  onClick={() => { if (!futureDate) { console.log('BLOCK_OPEN', block.id); navigate(`/block/${block.id}`); } }}
                 >
                   <div className="flex items-center justify-between p-4">
                     <div className="flex-1 min-w-0">

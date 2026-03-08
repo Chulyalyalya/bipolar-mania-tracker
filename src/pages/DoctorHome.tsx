@@ -92,7 +92,7 @@ const DoctorHome = () => {
             <div
               key={p.patientId}
               className="glass-card cursor-pointer hover:shadow-md transition-all group"
-              onClick={() => navigate(`/patient/${p.patientId}`)}
+              onClick={() => { console.log('BLOCK_OPEN patient', p.patientId); navigate(`/patient/${p.patientId}`); }}
             >
               <div className="flex items-center justify-between p-4">
                 <div className="flex-1 min-w-0">
