@@ -239,6 +239,9 @@ const Auth = () => {
             <GlassInput
               icon={Mail}
               type="email"
+              name="email"
+              autoComplete="username"
+              inputMode="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e-mail address"
@@ -249,6 +252,8 @@ const Auth = () => {
                 <GlassInput
                   icon={Lock}
                   type="password"
+                  name="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="password"
