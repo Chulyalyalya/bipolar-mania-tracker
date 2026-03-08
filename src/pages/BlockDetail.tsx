@@ -231,7 +231,7 @@ const BlockDetail = () => {
   };
 
   return (
-    <div className="p-4 pb-20 space-y-4">
+    <div className="relative z-0 p-4 pb-20 space-y-4">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => navigate('/')}>
           <ChevronLeft className="h-4 w-4" />
