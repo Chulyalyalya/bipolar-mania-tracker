@@ -355,7 +355,19 @@ const Auth = () => {
           </form>
         )}
 
-        {/* Footer hint */}
+        {/* Footer */}
+        {tab === 'register' && (
+          <p className="text-center text-sm text-muted-foreground">
+            Уже есть аккаунт?{' '}
+            <button
+              type="button"
+              onClick={() => { setTab('login'); setErrors({}); }}
+              className="font-medium text-foreground underline hover:opacity-70 transition-opacity"
+            >
+              Войти
+            </button>
+          </p>
+        )}
         <p className="text-center text-[11px] text-muted-foreground/50">
           Clinical daily tracking · Private by default
         </p>
