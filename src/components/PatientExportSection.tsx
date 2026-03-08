@@ -9,6 +9,7 @@ import { ru } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
+import { downloadWorkbook } from '@/lib/xlsxDownload';
 
 type RangeKey = '7' | '30' | '90' | 'all' | 'custom';
 
