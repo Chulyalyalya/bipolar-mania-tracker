@@ -2,10 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BLOCKS } from '@/lib/questions';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { addDays, format, isFuture, isToday, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -16,9 +14,9 @@ import { downloadWorkbook } from '@/lib/xlsxDownload';
 import type { EntrySummary } from '@/types';
 
 const EXPORT_RANGES = [
-  { label: '7 дней', days: 7 },
-  { label: '30 дней', days: 30 },
-  { label: '90 дней', days: 90 },
+  { label: '7D', days: 7 },
+  { label: '30D', days: 30 },
+  { label: '90D', days: 90 },
   { label: 'Всё', days: null },
 ];
 
@@ -90,6 +88,7 @@ const PatientDetailDoctor = () => {
     return summary[key] as number;
   };
 
+  const riskCount = summary?.total_risk_blocks_count ?? 0;
   const isCustomValid = useCustomRange ? !!(customFrom && customTo && customFrom <= customTo) : true;
 
   const handleExport = useCallback(async () => {
@@ -126,8 +125,6 @@ const PatientDetailDoctor = () => {
       if (entriesError) throw entriesError;
 
       if (!entries?.length) {
-        const noDataError = new Error('NO_DATA_FOR_EXPORT');
-        console.error('EXPORT_ERROR', noDataError);
         toast.error('Нет сохранённых записей для выбранного периода.');
         return;
       }
@@ -227,120 +224,168 @@ const PatientDetailDoctor = () => {
 
   return (
     <div className="p-4 pb-20 space-y-4">
+      {/* Header */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/')}>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="h-8 w-8 rounded-xl hover:bg-card/60 inline-flex items-center justify-center transition-colors"
+        >
           <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-base font-medium">{patientName}</h1>
+        </button>
+        <h1 className="text-base font-semibold">{patientName}</h1>
       </div>
 
-      <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card p-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedDate(addDays(selectedDate, -1))}>
+      {/* Date navigator */}
+      <div className="glass-card flex items-center justify-between p-2">
+        <button
+          type="button"
+          onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+          className="h-8 w-8 rounded-xl hover:bg-card/60 inline-flex items-center justify-center transition-colors"
+        >
           <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setSelectedDate(new Date())}>
-          Сегодня
-        </Button>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="text-sm font-medium">
-              {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(d) => d && setSelectedDate(d)}
-              disabled={(d) => d > today}
-              className="p-3 pointer-events-auto"
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
+        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectedDate(new Date())}
+            className="rounded-xl px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Сегодня
+          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="rounded-xl border border-border/30 bg-card/40 px-3 py-1.5 text-sm font-medium hover:bg-card/60 transition-colors"
+              >
+                {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => d && setSelectedDate(d)}
+                disabled={(d) => d > today}
+                className="p-3 pointer-events-auto"
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <button
+          type="button"
           disabled={atToday}
           onClick={() => !atToday && setSelectedDate(addDays(selectedDate, 1))}
+          className="h-8 w-8 rounded-xl hover:bg-card/60 inline-flex items-center justify-center transition-colors disabled:opacity-30"
         >
-          <ChevronLeft className="h-4 w-4 rotate-180" />
-        </Button>
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
-        Просмотр: {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
-      </p>
+      {/* Risk banner */}
+      {riskCount >= 3 && (
+        <div className="glass-card border-destructive/20 bg-destructive/5 p-3.5">
+          <p className="text-xs text-destructive font-medium">
+            {riskCount} блоков с повышенным риском за {format(selectedDate, 'd MMMM', { locale: ru })}.
+          </p>
+        </div>
+      )}
 
-      <div className="grid grid-cols-2 gap-3">
-        {BLOCKS.map((block) => {
-          const sum = getBlockSum(block.id);
-          const isRisk = sum !== null && sum > 4;
-          const isFullWidth = block.id === 7;
-          return (
-            <Card
-              key={block.id}
-              className={cn('transition-shadow', isFullWidth && 'col-span-2')}
-            >
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">Блок {block.id}</p>
-                  <p className="text-xs text-muted-foreground truncate">{block.name}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {sum !== null && (
-                    <span className={cn('text-sm font-medium', isRisk ? 'text-alert-red' : 'text-alert-green')}>
-                      {sum}
-                    </span>
-                  )}
-                  <div
-                    className={cn(
-                      'h-3 w-3 rounded-full',
-                      sum === null ? 'bg-muted' : isRisk ? 'bg-alert-red' : 'bg-alert-green'
+      {/* Block grid */}
+      <div>
+        <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+          Mania Checker
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {BLOCKS.map((block) => {
+            const sum = getBlockSum(block.id);
+            const isRisk = sum !== null && sum > 4;
+            const isFullWidth = block.id === 7;
+            return (
+              <div
+                key={block.id}
+                className={cn(
+                  'glass-card transition-all',
+                  isFullWidth && 'col-span-2'
+                )}
+              >
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">Блок {block.id}</p>
+                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">{block.name}</p>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    {sum !== null && (
+                      <span className={cn('text-sm font-semibold', isRisk ? 'text-alert-red' : 'text-alert-green')}>
+                        {sum}
+                      </span>
                     )}
-                  />
+                    <div
+                      className={cn(
+                        'h-3 w-3 rounded-full',
+                        sum === null ? 'bg-muted' : isRisk ? 'bg-alert-red' : 'bg-alert-green'
+                      )}
+                    />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
+      {/* Export section */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-muted-foreground">Экспорт данных</h3>
-        <div className="flex flex-wrap gap-2">
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+          Экспорт данных
+        </p>
+        <div className="flex gap-1.5 flex-wrap">
           {EXPORT_RANGES.map((r, i) => (
-            <Button
+            <button
               key={r.label}
-              variant={!useCustomRange && exportRangeIdx === i ? 'default' : 'outline'}
-              size="sm"
-              className="text-xs"
+              type="button"
               onClick={() => {
                 setExportRangeIdx(i);
                 setUseCustomRange(false);
               }}
+              className={cn(
+                'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
+                !useCustomRange && exportRangeIdx === i
+                  ? 'bg-foreground text-background'
+                  : 'bg-card/40 text-muted-foreground hover:bg-card/60 border border-border/30'
+              )}
             >
               {r.label}
-            </Button>
+            </button>
           ))}
-          <Button
-            variant={useCustomRange ? 'default' : 'outline'}
-            size="sm"
-            className="text-xs"
+          <button
+            type="button"
             onClick={() => setUseCustomRange(true)}
+            className={cn(
+              'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
+              useCustomRange
+                ? 'bg-foreground text-background'
+                : 'bg-card/40 text-muted-foreground hover:bg-card/60 border border-border/30'
+            )}
           >
-            Свой период
-          </Button>
+            Период
+          </button>
         </div>
 
         {useCustomRange && (
           <div className="flex gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="text-xs flex-1">
+                <button
+                  type="button"
+                  className="flex-1 rounded-xl border border-border/30 bg-card/40 px-3 py-2 text-xs hover:bg-card/60 transition-colors"
+                >
                   {customFrom ? format(customFrom, 'd MMM yyyy', { locale: ru }) : 'Дата с'}
-                </Button>
+                </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
@@ -355,9 +400,12 @@ const PatientDetailDoctor = () => {
             </Popover>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="text-xs flex-1">
+                <button
+                  type="button"
+                  className="flex-1 rounded-xl border border-border/30 bg-card/40 px-3 py-2 text-xs hover:bg-card/60 transition-colors"
+                >
                   {customTo ? format(customTo, 'd MMM yyyy', { locale: ru }) : 'Дата по'}
-                </Button>
+                </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
                 <Calendar
@@ -374,18 +422,23 @@ const PatientDetailDoctor = () => {
         )}
 
         {useCustomRange && customFrom && customTo && customFrom > customTo && (
-          <p className="text-xs text-destructive">«Дата с» должна быть раньше «Дата по»</p>
+          <p className="text-[11px] text-destructive">«Дата с» должна быть раньше «Дата по»</p>
         )}
 
-        <Button
-          type="button"
-          className="w-full gap-2"
-          onClick={handleExport}
-          disabled={exporting || !hasData || (useCustomRange && !isCustomValid)}
-        >
-          <Download className="h-4 w-4" />
-          {exporting ? 'Экспорт…' : 'Скачать данные'}
-        </Button>
+        <div className="relative z-10 pointer-events-auto">
+          <button
+            type="button"
+            onClick={() => {
+              console.log('DOCTOR_EXPORT_CLICK');
+              void handleExport();
+            }}
+            disabled={exporting || !hasData || (useCustomRange && !isCustomValid)}
+            className="relative z-10 pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" />
+            {exporting ? 'Экспорт…' : 'Скачать данные'}
+          </button>
+        </div>
 
         {!hasData && (
           <p className="text-xs text-muted-foreground text-center">
