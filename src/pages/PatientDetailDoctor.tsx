@@ -378,6 +378,7 @@ const PatientDetailDoctor = () => {
         )}
 
         <Button
+          type="button"
           className="w-full gap-2"
           onClick={handleExport}
           disabled={exporting || !hasData || (useCustomRange && !isCustomValid)}
