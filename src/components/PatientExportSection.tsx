@@ -267,7 +267,7 @@ const PatientExportSection = () => {
       <button
         type="button"
         onClick={handleExport}
-        disabled={exporting || !customValid || noData}
+        disabled={exporting || !customValid}
         className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {exporting ? 'Экспорт…' : 'Скачать данные Excel'}
