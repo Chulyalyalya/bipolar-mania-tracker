@@ -4,12 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { EntrySummary } from '@/types';
 
 interface PatientRow {
   patientId: string;
   fullName: string;
   lastEntryDate: string | null;
+  riskCount: number;
 }
 
 const DoctorHome = () => {
@@ -48,16 +51,27 @@ const DoctorHome = () => {
       for (const pid of patientIds) {
         const { data: lastEntry } = await supabase
           .from('entries')
-          .select('entry_date')
+          .select('id, entry_date')
           .eq('user_id', pid)
           .order('entry_date', { ascending: false })
           .limit(1)
           .maybeSingle();
 
+        let riskCount = 0;
+        if (lastEntry) {
+          const { data: summary } = await supabase
+            .from('entry_summaries')
+            .select('total_risk_blocks_count')
+            .eq('entry_id', lastEntry.id)
+            .maybeSingle();
+          riskCount = (summary as any)?.total_risk_blocks_count ?? 0;
+        }
+
         rows.push({
           patientId: pid,
           fullName: profileMap.get(pid) || 'Пациент',
           lastEntryDate: lastEntry?.entry_date ?? null,
+          riskCount,
         });
       }
 
@@ -77,9 +91,13 @@ const DoctorHome = () => {
 
   return (
     <div className="p-4 pb-20 space-y-4">
-      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-        Мои пациенты
-      </p>
+      <div className="flex items-center gap-2">
+        <Users className="h-4 w-4 text-muted-foreground" />
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+          Мои пациенты
+        </p>
+      </div>
+
       {patients.length === 0 ? (
         <div className="glass-card p-6 text-center">
           <p className="text-sm text-muted-foreground">
@@ -92,11 +110,19 @@ const DoctorHome = () => {
             <div
               key={p.patientId}
               className="glass-card cursor-pointer hover:shadow-md transition-all group"
-              onClick={() => { console.log('BLOCK_OPEN patient', p.patientId); navigate(`/patient/${p.patientId}`); }}
+              onClick={() => {
+                console.log('BLOCK_OPEN patient', p.patientId);
+                navigate(`/patient/${p.patientId}`);
+              }}
             >
               <div className="flex items-center justify-between p-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{p.fullName}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate">{p.fullName}</p>
+                    {p.riskCount >= 3 && (
+                      <div className="h-2.5 w-2.5 rounded-full bg-alert-red flex-shrink-0" />
+                    )}
+                  </div>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {p.lastEntryDate
                       ? `Последняя запись: ${format(new Date(p.lastEntryDate), 'd MMM yyyy', { locale: ru })}`
