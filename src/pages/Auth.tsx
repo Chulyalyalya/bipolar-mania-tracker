@@ -55,6 +55,7 @@ const LoginForm = ({
   const handle = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      console.log('LOGIN_CLICK', { email });
       onSubmit(email, password);
     },
     [email, password, onSubmit],
