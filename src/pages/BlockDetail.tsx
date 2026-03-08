@@ -231,7 +231,7 @@ const BlockDetail = () => {
   };
 
   return (
-    <div className="p-4 pb-20 space-y-4">
+    <div className="relative z-0 p-4 pb-20 space-y-4">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => navigate('/')}>
           <ChevronLeft className="h-4 w-4" />
@@ -250,11 +250,11 @@ const BlockDetail = () => {
         </div>
       )}
 
-      <div className="space-y-2.5">
+      <div className="relative z-10 space-y-2.5">
         {block.questions.map((q, qIdx) => (
-          <div key={qIdx} className="glass-card p-4">
+          <div key={qIdx} className="glass-card p-4 relative z-0">
             <p className="text-xs text-foreground mb-2.5 leading-relaxed">{q}</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 relative z-10">
               {[0, 1, 2, 3, 4].map((val) => (
                 <button
                   key={val}
@@ -262,7 +262,7 @@ const BlockDetail = () => {
                   onClick={() => { if (!futureDate) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
                   disabled={futureDate}
                   className={cn(
-                    'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all',
+                    'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all pointer-events-auto',
                     scores[qIdx] === val
                       ? 'bg-foreground border-foreground text-background shadow-sm'
                       : 'border-border/30 text-muted-foreground hover:border-primary/50 hover:bg-card/60',
@@ -285,17 +285,23 @@ const BlockDetail = () => {
       </div>
 
       {!futureDate && (
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          <span>{entryId ? 'Обновить' : 'Сохранить'}</span>
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/20">
-            <ChevronLeft className="h-3.5 w-3.5 text-background rotate-180" />
-          </div>
-        </button>
+        <div className="relative z-10">
+          <button
+            type="button"
+            onPointerDown={() => console.log('SAVE_BUTTON_POINTER_DOWN')}
+            onClick={(e) => {
+              console.log('SAVE_BUTTON_CLICKED', { target: (e.target as HTMLElement).tagName, saving });
+              handleSave();
+            }}
+            disabled={saving}
+            className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 pointer-events-auto"
+          >
+            <span>{entryId ? 'Обновить' : 'Сохранить'}</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/20 pointer-events-none">
+              <ChevronLeft className="h-3.5 w-3.5 text-background rotate-180" />
+            </div>
+          </button>
+        </div>
       )}
 
       {lastEdited && (

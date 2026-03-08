@@ -55,7 +55,7 @@ const AppRoutes = () => {
       <>
         <GlobalHeader />
         <DateSelector />
-        <main className="min-h-[calc(100vh-120px)]">
+        <main className="relative isolate min-h-[calc(100vh-120px)]">
           <Routes>
             <Route path="/" element={<PatientHome />} />
             <Route path="/block/:blockId" element={<BlockDetail />} />
@@ -72,7 +72,7 @@ const AppRoutes = () => {
   return (
     <>
       <GlobalHeader />
-      <main className="min-h-screen">
+      <main className="relative isolate min-h-screen">
         <Routes>
           <Route path="/" element={<DoctorHome />} />
           <Route path="/patient/:patientId" element={<PatientDetailDoctor />} />
