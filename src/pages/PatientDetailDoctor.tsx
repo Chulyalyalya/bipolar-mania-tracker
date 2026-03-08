@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
+import { useSelectedDate } from '@/contexts/DateContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BLOCKS } from '@/lib/questions';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
-import { addDays, format, isFuture, isToday, subDays } from 'date-fns';
+import { ChevronLeft, Download } from 'lucide-react';
+import { format, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -23,8 +24,8 @@ const EXPORT_RANGES = [
 const PatientDetailDoctor = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
+  const { selectedDate, dateStr } = useSelectedDate();
   const [patientName, setPatientName] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [summary, setSummary] = useState<EntrySummary | null>(null);
   const [exporting, setExporting] = useState(false);
   const [hasData, setHasData] = useState(true);
@@ -34,9 +35,7 @@ const PatientDetailDoctor = () => {
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
 
-  const dateStr = format(selectedDate, 'yyyy-MM-dd');
   const today = new Date();
-  const atToday = isToday(selectedDate) || isFuture(selectedDate);
 
   useEffect(() => {
     if (!patientId) return;
@@ -236,56 +235,6 @@ const PatientDetailDoctor = () => {
         <h1 className="text-base font-semibold">{patientName}</h1>
       </div>
 
-      {/* Date navigator */}
-      <div className="glass-card flex items-center justify-between p-2">
-        <button
-          type="button"
-          onClick={() => setSelectedDate(addDays(selectedDate, -1))}
-          className="h-8 w-8 rounded-xl hover:bg-card/60 inline-flex items-center justify-center transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedDate(new Date())}
-            className="rounded-xl px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Сегодня
-          </button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="rounded-xl border border-border/30 bg-card/40 px-3 py-1.5 text-sm font-medium hover:bg-card/60 transition-colors"
-              >
-                {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(d) => d && setSelectedDate(d)}
-                disabled={(d) => d > today}
-                className="p-3 pointer-events-auto"
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <button
-          type="button"
-          disabled={atToday}
-          onClick={() => !atToday && setSelectedDate(addDays(selectedDate, 1))}
-          className="h-8 w-8 rounded-xl hover:bg-card/60 inline-flex items-center justify-center transition-colors disabled:opacity-30"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-
       {/* Risk banner */}
       {riskCount >= 3 && (
         <div className="glass-card border-destructive/20 bg-destructive/5 p-3.5">
@@ -295,7 +244,7 @@ const PatientDetailDoctor = () => {
         </div>
       )}
 
-      {/* Block grid */}
+      {/* Block grid — same layout as patient home */}
       <div>
         <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
           Mania Checker
@@ -320,9 +269,7 @@ const PatientDetailDoctor = () => {
                   </div>
                   <div className="flex items-center gap-2.5">
                     {sum !== null && (
-                      <span className={cn('text-sm font-semibold', isRisk ? 'text-alert-red' : 'text-alert-green')}>
-                        {sum}
-                      </span>
+                      <span className="text-sm font-semibold">{sum}</span>
                     )}
                     <div
                       className={cn(
@@ -425,20 +372,18 @@ const PatientDetailDoctor = () => {
           <p className="text-[11px] text-destructive">«Дата с» должна быть раньше «Дата по»</p>
         )}
 
-        <div className="relative z-10 pointer-events-auto">
-          <button
-            type="button"
-            onClick={() => {
-              console.log('DOCTOR_EXPORT_CLICK');
-              void handleExport();
-            }}
-            disabled={exporting || !hasData || (useCustomRange && !isCustomValid)}
-            className="relative z-10 pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            <Download className="h-4 w-4" />
-            {exporting ? 'Экспорт…' : 'Скачать данные'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            console.log('DOCTOR_EXPORT_CLICK');
+            void handleExport();
+          }}
+          disabled={exporting || !hasData || (useCustomRange && !isCustomValid)}
+          className="relative z-10 pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          <Download className="h-4 w-4" />
+          {exporting ? 'Экспорт…' : 'Скачать данные'}
+        </button>
 
         {!hasData && (
           <p className="text-xs text-muted-foreground text-center">

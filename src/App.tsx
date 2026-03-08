@@ -68,11 +68,12 @@ const AppRoutes = () => {
     );
   }
 
-  // Doctor layout
+  // Doctor layout — same shell as patient
   return (
     <>
       <GlobalHeader />
-      <main className="relative isolate min-h-screen">
+      <DateSelector />
+      <main className="relative isolate min-h-[calc(100vh-120px)]">
         <Routes>
           <Route path="/" element={<DoctorHome />} />
           <Route path="/patient/:patientId" element={<PatientDetailDoctor />} />
