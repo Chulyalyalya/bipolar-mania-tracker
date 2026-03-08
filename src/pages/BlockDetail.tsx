@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { subDays, format } from 'date-fns';
+import { subDays, format, isFuture, isToday } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import {
   ChartContainer,
@@ -28,14 +28,16 @@ const BlockDetail = () => {
   const { blockId } = useParams<{ blockId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { dateStr } = useSelectedDate();
+  const { selectedDate, dateStr } = useSelectedDate();
   const [scores, setScores] = useState<number[]>([]);
   const [entryId, setEntryId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [rangeIdx, setRangeIdx] = useState(0);
   const [chartData, setChartData] = useState<{ date: string; sum: number }[]>([]);
+  const [lastEdited, setLastEdited] = useState<string | null>(null);
 
   const block = useMemo(() => BLOCKS.find((b) => b.id === Number(blockId)), [blockId]);
+  const futureDate = isFuture(selectedDate) && !isToday(selectedDate);
 
   const total = scores.reduce((a, b) => a + b, 0);
   const isRisk = total > 4;
@@ -46,13 +48,14 @@ const BlockDetail = () => {
     const load = async () => {
       const { data: entry } = await supabase
         .from('entries')
-        .select('id')
+        .select('id, last_edited_at')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
         .single();
 
       if (entry) {
         setEntryId(entry.id);
+        setLastEdited(entry.last_edited_at);
         const { data: answers } = await supabase
           .from('mania_answers')
           .select('question_id, score')
@@ -68,6 +71,7 @@ const BlockDetail = () => {
         setScores(s);
       } else {
         setEntryId(null);
+        setLastEdited(null);
         setScores(new Array(block.questions.length).fill(0));
       }
     };
@@ -128,19 +132,30 @@ const BlockDetail = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || futureDate) return;
     setSaving(true);
     try {
       let eid = entryId;
+      const now = new Date().toISOString();
+
       if (!eid) {
         const { data, error } = await supabase
           .from('entries')
-          .upsert({ user_id: user.id, entry_date: dateStr }, { onConflict: 'user_id,entry_date' })
+          .upsert(
+            { user_id: user.id, entry_date: dateStr, entered_at: now, last_edited_at: now } as any,
+            { onConflict: 'user_id,entry_date' }
+          )
           .select('id')
           .single();
         if (error) throw error;
         eid = data.id;
         setEntryId(eid);
+      } else {
+        // Update last_edited_at only
+        await supabase
+          .from('entries')
+          .update({ last_edited_at: now } as any)
+          .eq('id', eid);
       }
 
       // Delete old answers for this block then insert
@@ -185,6 +200,7 @@ const BlockDetail = () => {
           total_risk_blocks_count: riskCount,
         } as any, { onConflict: 'entry_id' });
 
+      setLastEdited(now);
       toast.success('Сохранено');
       loadChart();
     } catch (e: any) {
@@ -213,6 +229,14 @@ const BlockDetail = () => {
         </div>
       </div>
 
+      {futureDate && (
+        <div className="rounded-xl bg-secondary p-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Эта дата ещё не наступила. Заполнение будет доступно позже.
+          </p>
+        </div>
+      )}
+
       <div className="space-y-3">
         {block.questions.map((q, qIdx) => (
           <Card key={qIdx}>
@@ -222,12 +246,14 @@ const BlockDetail = () => {
                 {[0, 1, 2, 3, 4].map((val) => (
                   <button
                     key={val}
-                    onClick={() => setScore(qIdx, val)}
+                    onClick={() => !futureDate && setScore(qIdx, val)}
+                    disabled={futureDate}
                     className={cn(
                       'h-8 w-8 rounded-full border-2 text-xs font-medium transition-colors',
                       scores[qIdx] === val
                         ? 'bg-primary border-primary text-primary-foreground'
-                        : 'border-border text-muted-foreground hover:border-primary/50'
+                        : 'border-border text-muted-foreground hover:border-primary/50',
+                      futureDate && 'opacity-50 cursor-not-allowed'
                     )}
                   >
                     {val}
@@ -246,9 +272,17 @@ const BlockDetail = () => {
         </span>
       </div>
 
-      <Button className="w-full" onClick={handleSave} disabled={saving}>
-        {entryId ? 'Обновить' : 'Сохранить'}
-      </Button>
+      {!futureDate && (
+        <Button className="w-full" onClick={handleSave} disabled={saving}>
+          {entryId ? 'Обновить' : 'Сохранить'}
+        </Button>
+      )}
+
+      {lastEdited && (
+        <p className="text-[10px] text-muted-foreground text-center">
+          Последнее обновление: {format(new Date(lastEdited), 'd MMM yyyy, HH:mm', { locale: ru })}
+        </p>
+      )}
 
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-muted-foreground">Статистика</h3>

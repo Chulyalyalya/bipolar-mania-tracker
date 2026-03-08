@@ -13,6 +13,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import PrepareExportModal from '@/components/PrepareExportModal';
 
 const Settings = () => {
   const { profile, role, signOut } = useAuth();
@@ -20,6 +21,7 @@ const Settings = () => {
   const [doctorCode, setDoctorCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [connecting, setConnecting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const handleConnect = async () => {
     const code = doctorCode.trim().toUpperCase();
@@ -30,7 +32,6 @@ const Settings = () => {
     setCodeError('');
     setConnecting(true);
     try {
-      // Find doctor by code
       const { data: doctorProfile, error: findErr } = await supabase
         .from('profiles')
         .select('id')
@@ -46,14 +47,12 @@ const Settings = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Не авторизован');
 
-      // Revoke existing active links
       await supabase
         .from('doctor_patient_links')
         .update({ status: 'revoked' as any })
         .eq('patient_user_id', user.id)
         .eq('status', 'active' as any);
 
-      // Create new link
       const { error: linkErr } = await supabase
         .from('doctor_patient_links')
         .insert({
@@ -78,7 +77,6 @@ const Settings = () => {
     <div className="p-4 pb-20 space-y-4">
       <h1 className="text-lg font-medium">Настройки</h1>
 
-      {/* Profile card */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Профиль</CardTitle>
@@ -92,14 +90,18 @@ const Settings = () => {
         </CardContent>
       </Card>
 
-      {/* Add doctor button (patients only) */}
       {role === 'patient' && (
-        <Button className="w-full" onClick={() => setSheetOpen(true)}>
-          Добавить врача
-        </Button>
+        <>
+          <Button className="w-full" onClick={() => setSheetOpen(true)}>
+            Добавить врача
+          </Button>
+
+          <Button variant="outline" className="w-full" onClick={() => setExportOpen(true)}>
+            Подготовить данные к приёму
+          </Button>
+        </>
       )}
 
-      {/* Logout */}
       <Button variant="outline" className="w-full" onClick={signOut}>
         Выйти
       </Button>
@@ -131,11 +133,7 @@ const Settings = () => {
               )}
             </div>
             <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                onClick={handleConnect}
-                disabled={connecting}
-              >
+              <Button className="flex-1" onClick={handleConnect} disabled={connecting}>
                 Подключить
               </Button>
               <Button
@@ -153,6 +151,11 @@ const Settings = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Patient export modal */}
+      {role === 'patient' && (
+        <PrepareExportModal open={exportOpen} onOpenChange={setExportOpen} />
+      )}
     </div>
   );
 };
