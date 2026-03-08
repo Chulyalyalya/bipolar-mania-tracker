@@ -285,21 +285,18 @@ const BlockDetail = () => {
       </div>
 
       {!futureDate && (
-        <div className="relative z-10">
+        <div className="relative z-[120] pointer-events-auto">
           <button
             type="button"
-            onPointerDown={() => console.log('SAVE_BUTTON_POINTER_DOWN')}
-            onClick={(e) => {
-              console.log('SAVE_BUTTON_CLICKED', { target: (e.target as HTMLElement).tagName, saving });
-              handleSave();
+            onClick={() => {
+              console.log('SAVE_CLICK');
+              alert('SAVE_CLICK');
+              void handleSaveBlock();
             }}
             disabled={saving}
-            className="group flex w-full items-center justify-between rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 pointer-events-auto"
+            className="relative z-[121] pointer-events-auto flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            <span>{entryId ? 'Обновить' : 'Сохранить'}</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-background/20 pointer-events-none">
-              <ChevronLeft className="h-3.5 w-3.5 text-background rotate-180" />
-            </div>
+            {entryId ? 'Обновить' : 'Сохранить'}
           </button>
         </div>
       )}
