@@ -22,6 +22,7 @@ const Settings = () => {
   const [connecting, setConnecting] = useState(false);
 
   const handleConnect = async () => {
+    console.log('CONNECT_DOCTOR', { doctorCode });
     const code = doctorCode.trim().toUpperCase();
     if (code.length !== 9) {
       setCodeError('Код должен содержать 9 символов');
