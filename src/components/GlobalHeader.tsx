@@ -28,7 +28,7 @@ const GlobalHeader = () => {
             <Copy className="h-3 w-3" />
           </button>
         )}
-        <Button variant="ghost" size="icon" onClick={signOut} className="h-8 w-8 rounded-xl hover:bg-card/60">
+        <Button variant="ghost" size="icon" onClick={() => { console.log('LOGOUT'); signOut(); }} className="h-8 w-8 rounded-xl hover:bg-card/60">
           <LogOut className="h-4 w-4" />
         </Button>
       </div>

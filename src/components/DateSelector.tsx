@@ -59,7 +59,7 @@ const DateSelector = () => {
         className="h-8 w-8 rounded-xl"
         disabled={atToday}
         onClick={() => {
-          if (!atToday) setSelectedDate(addDays(selectedDate, 1));
+          if (!atToday) { console.log('DATE_CHANGE', 'next'); setSelectedDate(addDays(selectedDate, 1)); }
         }}
       >
         <ChevronRight className="h-4 w-4" />

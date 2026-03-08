@@ -132,6 +132,7 @@ const BlockDetail = () => {
 
   const handleSave = async () => {
     if (!user || futureDate) return;
+    console.log(entryId ? 'UPDATE_ENTRY' : 'SAVE_ENTRY', { blockId: block.id, scores, total });
     setSaving(true);
     try {
       let eid = entryId;

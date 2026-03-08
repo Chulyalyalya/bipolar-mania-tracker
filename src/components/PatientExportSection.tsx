@@ -156,6 +156,7 @@ const PatientExportSection = () => {
       console.log('EXPORT_SUCCESS', fileName);
       toast.success('Файл скачан');
     } catch (e: any) {
+      console.error('EXPORT_ERROR', e);
       toast.error(e.message || 'Ошибка экспорта');
     } finally {
       setExporting(false);
