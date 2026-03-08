@@ -74,11 +74,16 @@ const Settings = () => {
   };
 
   const handleLogout = async () => {
-    console.log('LOGOUT');
-    console.log('LOGOUT_CLICK');
-    alert('LOGOUT_CLICK');
-    await signOut();
-    navigate('/auth', { replace: true });
+    try {
+      console.log('LOGOUT_CLICK');
+      console.log('LOGOUT_START');
+      await signOut();
+      navigate('/auth', { replace: true });
+      console.log('LOGOUT_SUCCESS');
+    } catch (error) {
+      console.error('LOGOUT_ERROR', error);
+      toast.error('Не удалось выйти из аккаунта');
+    }
   };
 
   return (
