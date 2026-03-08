@@ -13,7 +13,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import PrepareExportModal from '@/components/PrepareExportModal';
+import PatientExportSection from '@/components/PatientExportSection';
 
 const Settings = () => {
   const { profile, role, signOut } = useAuth();
