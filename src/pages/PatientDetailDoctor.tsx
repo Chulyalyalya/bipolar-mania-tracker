@@ -122,25 +122,29 @@ const PatientDetailDoctor = () => {
       if (fromDate) query = query.gte('entry_date', fromDate);
       if (!isAll) query = query.lte('entry_date', toDate);
 
-      const { data: entries } = await query;
+      const { data: entries, error: entriesError } = await query;
+      if (entriesError) throw entriesError;
 
       if (!entries?.length) {
+        const noDataError = new Error('NO_DATA_FOR_EXPORT');
+        console.error('EXPORT_ERROR', noDataError);
         toast.error('Нет сохранённых записей для выбранного периода.');
-        setExporting(false);
         return;
       }
 
       const entryIds = entries.map((e) => e.id);
 
-      const { data: answers } = await supabase
+      const { data: answers, error: answersError } = await supabase
         .from('mania_answers')
         .select('entry_id, block_id, question_id, score')
         .in('entry_id', entryIds);
+      if (answersError) throw answersError;
 
-      const { data: summaries } = await supabase
+      const { data: summaries, error: summariesError } = await supabase
         .from('entry_summaries')
         .select('entry_id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
         .in('entry_id', entryIds);
+      if (summariesError) throw summariesError;
 
       const summaryMap = new Map<string, any>();
       summaries?.forEach((s) => summaryMap.set(s.entry_id, s));
@@ -194,7 +198,6 @@ const PatientDetailDoctor = () => {
         XLSX.utils.book_append_sheet(wb, ws, `Блок ${block.id}`);
       }
 
-      // Notes sheet
       const notesRows: string[][] = [['Дата', 'Заметка']];
       entries.forEach((e) => {
         const note = (e as any).daily_note;
@@ -210,9 +213,12 @@ const PatientDetailDoctor = () => {
 
       const safeName = patientName.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_');
       const fileSuffix = isAll ? 'ALL' : `${fromDate}_${toDate}`;
-      XLSX.writeFile(wb, `PatientData_${safeName}_${fileSuffix}.xlsx`);
+      const fileName = `PatientData_${safeName}_${fileSuffix}.xlsx`;
+      downloadWorkbook(wb, fileName);
+      console.log('EXPORT_SUCCESS', fileName);
       toast.success('Файл скачан');
     } catch (e: any) {
+      console.error('EXPORT_ERROR', e);
       toast.error(e.message || 'Ошибка экспорта');
     } finally {
       setExporting(false);
