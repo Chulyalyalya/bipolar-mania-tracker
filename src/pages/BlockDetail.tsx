@@ -45,21 +45,31 @@ const BlockDetail = () => {
   useEffect(() => {
     if (!user || !block) return;
     const load = async () => {
-      const { data: entry } = await supabase
+      const { data: entry, error: entryError } = await supabase
         .from('entries')
         .select('id, last_edited_at')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
-        .single();
+        .maybeSingle();
+
+      if (entryError) {
+        console.error('LOAD_ENTRY_ERROR', entryError);
+        return;
+      }
 
       if (entry) {
         setEntryId(entry.id);
         setLastEdited(entry.last_edited_at);
-        const { data: answers } = await supabase
+        const { data: answers, error: answersError } = await supabase
           .from('mania_answers')
           .select('question_id, score')
           .eq('entry_id', entry.id)
           .eq('block_id', block.id);
+
+        if (answersError) {
+          console.error('LOAD_ANSWERS_ERROR', answersError);
+          return;
+        }
 
         const s = new Array(block.questions.length).fill(0);
         answers?.forEach((a) => {
