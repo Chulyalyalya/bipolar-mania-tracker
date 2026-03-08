@@ -294,13 +294,14 @@ const BlockDetail = () => {
           {RANGES.map((r, i) => (
             <button
               key={r.label}
+              type="button"
               className={cn(
                 'rounded-xl px-3 py-1.5 text-xs font-medium transition-all',
                 rangeIdx === i
                   ? 'bg-foreground text-background'
                   : 'bg-card/40 text-muted-foreground hover:bg-card/60 border border-border/30'
               )}
-              onClick={() => setRangeIdx(i)}
+              onClick={() => { console.log('CHART_RANGE', r.label); setRangeIdx(i); }}
             >
               {r.label}
             </button>

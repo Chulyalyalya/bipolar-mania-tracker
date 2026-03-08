@@ -261,6 +261,7 @@ const PatientExportSection = () => {
 
       {/* Export button */}
       <button
+        type="button"
         onClick={handleExport}
         disabled={exporting || !customValid || noData}
         className="group flex w-full items-center justify-center rounded-2xl bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"

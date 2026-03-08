@@ -139,6 +139,7 @@ const Settings = () => {
             </div>
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={handleConnect}
                 disabled={connecting}
                 className="flex-1 rounded-2xl bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
@@ -146,6 +147,7 @@ const Settings = () => {
                 Подключить
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setSheetOpen(false);
                   setDoctorCode('');
