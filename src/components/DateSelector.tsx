@@ -26,7 +26,7 @@ const DateSelector = () => {
         variant="ghost"
         size="sm"
         className="text-[11px] text-muted-foreground rounded-xl"
-        onClick={() => setSelectedDate(new Date())}
+        onClick={() => { console.log('DATE_CHANGE', 'today'); setSelectedDate(new Date()); }}
       >
         Сегодня
       </Button>
