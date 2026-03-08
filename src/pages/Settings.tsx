@@ -21,7 +21,6 @@ const Settings = () => {
   const [doctorCode, setDoctorCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [connecting, setConnecting] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
 
   const handleConnect = async () => {
     const code = doctorCode.trim().toUpperCase();
