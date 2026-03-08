@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
@@ -16,6 +16,7 @@ import PatientExportSection from '@/components/PatientExportSection';
 
 const Settings = () => {
   const { profile, role, signOut } = useAuth();
+  const navigate = useNavigate();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [doctorCode, setDoctorCode] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -72,6 +73,14 @@ const Settings = () => {
     }
   };
 
+  const handleLogout = async () => {
+    console.log('LOGOUT');
+    console.log('LOGOUT_CLICK');
+    alert('LOGOUT_CLICK');
+    await signOut();
+    navigate('/auth', { replace: true });
+  };
+
   return (
     <div className="p-4 pb-20 space-y-4">
       <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -105,7 +114,7 @@ const Settings = () => {
 
       <button
         type="button"
-        onClick={() => { console.log('LOGOUT'); signOut(); }}
+        onClick={handleLogout}
         className="flex w-full items-center justify-center rounded-2xl border border-border/30 bg-card/40 backdrop-blur-sm px-5 py-3 text-sm font-medium text-foreground transition-all hover:bg-card/60"
       >
         Выйти
@@ -166,3 +175,4 @@ const Settings = () => {
 };
 
 export default Settings;
+
