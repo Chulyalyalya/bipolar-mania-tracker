@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { isFuture, isToday } from 'date-fns';
 import DonutStreak from '@/components/DonutStreak';
 import DailyNotes from '@/components/DailyNotes';
+import MedicationTracker from '@/components/MedicationTracker';
 import SustainedActivationBanner from '@/components/SustainedActivationBanner';
 import { Check, ChevronRight } from 'lucide-react';
 
