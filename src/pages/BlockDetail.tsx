@@ -279,7 +279,7 @@ const BlockDetail = () => {
         </span>
       </div>
 
-      {!futureDate && (
+      {!futureDate && !isReadOnly && (
         <div className="relative z-[120] pointer-events-auto">
           <button
             type="button"
