@@ -61,15 +61,15 @@ const Settings = () => {
       }
 
       const doctorIds = links.map((l) => l.doctor_user_id);
-      const { data: profiles } = await supabase
+      const { data: profiles } = await (supabase
         .from('profiles')
         .select('id, full_name, doctor_code')
-        .in('id', doctorIds);
+        .in('id', doctorIds) as any);
 
-      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+      const profileMap = new Map((profiles as any[])?.map((p: any) => [p.id, p]) ?? []);
 
       const doctors: LinkedDoctor[] = links.map((l) => {
-        const p = profileMap.get(l.doctor_user_id);
+        const p = profileMap.get(l.doctor_user_id) as any;
         return {
           linkId: l.id,
           doctorUserId: l.doctor_user_id,
@@ -100,11 +100,11 @@ const Settings = () => {
     setCodeError('');
     setConnecting(true);
     try {
-      const { data: doctorProfile, error: findErr } = await supabase
+      const { data: doctorProfile, error: findErr } = await (supabase
         .from('profiles')
         .select('id')
         .eq('doctor_code', code)
-        .single();
+        .single() as any);
 
       if (findErr || !doctorProfile) {
         setCodeError('Врач с таким кодом не найден');
@@ -112,7 +112,6 @@ const Settings = () => {
         return;
       }
 
-      // Check if already linked
       const alreadyLinked = linkedDoctors.some(
         (d) => d.doctorUserId === doctorProfile.id
       );
@@ -191,7 +190,6 @@ const Settings = () => {
           )}
         </div>
 
-        {/* Linked doctors list for patients */}
         {role === 'patient' && linkedDoctors.length > 0 && (
           <div className="space-y-1.5 pt-1">
             {linkedDoctors.map((doc) => (
@@ -238,7 +236,6 @@ const Settings = () => {
         Выйти
       </button>
 
-      {/* Add doctor sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="bottom" className="rounded-t-3xl border-border/20">
           <SheetHeader>
@@ -289,7 +286,6 @@ const Settings = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Remove doctor confirmation */}
       <AlertDialog open={!!removingDoctor} onOpenChange={(open) => !open && setRemovingDoctor(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -44,10 +44,6 @@ const LoginForm = ({
   loading,
   onSubmit,
   onForgot
-
-
-
-
 }: {loading: boolean;onSubmit: (email: string, password: string) => void;onForgot: () => void;}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +76,6 @@ const LoginForm = ({
           placeholder="e-mail address"
           required
           className={inputClass} />
-        
       </div>
 
       <div className="space-y-1.5">
@@ -98,13 +93,11 @@ const LoginForm = ({
               placeholder="password"
               required
               className={inputClass} />
-            
           </div>
           <button
             type="button"
             onClick={onForgot}
             className="absolute right-4 top-1/2 -translate-y-1/2 rounded-lg border border-border/40 bg-card/80 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
-            
             забыл
           </button>
         </div>
@@ -114,7 +107,6 @@ const LoginForm = ({
         <SubmitButton loading={loading} label="Войти" />
       </div>
     </form>);
-
 };
 
 /* ─── Register Form ─── */
@@ -130,10 +122,6 @@ const RegisterForm = ({
   loading,
   onSubmit,
   onSwitchLogin
-
-
-
-
 }: {loading: boolean;onSubmit: (data: {email: string;password: string;fullName: string;role: AppRole;}) => void;onSwitchLogin: () => void;}) => {
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [fullName, setFullName] = useState('');
@@ -183,7 +171,6 @@ const RegisterForm = ({
               'border-primary/50 bg-primary/10 text-foreground shadow-sm' :
               `border-border/30 bg-card/40 text-muted-foreground hover:border-border/60 hover:bg-card/60 ${errors.role ? 'border-destructive/40' : ''}`}`
               }>
-              
                 {r.label}
               </button>
             )}
@@ -205,7 +192,6 @@ const RegisterForm = ({
               onChange={(e) => {setFullName(e.target.value);clearError('fullName');}}
               placeholder="Полное имя"
               className={inputClass} />
-            
           </div>
           {errors.fullName && <p className="text-[11px] text-destructive mt-1">{errors.fullName}</p>}
         </div>
@@ -228,7 +214,6 @@ const RegisterForm = ({
               onChange={(e) => {setEmail(e.target.value);clearError('email');}}
               placeholder="e-mail address"
               className={inputClass} />
-            
           </div>
           {errors.email && <p className="text-[11px] text-destructive mt-1">{errors.email}</p>}
         </div>
@@ -248,11 +233,9 @@ const RegisterForm = ({
               placeholder="пароль"
               minLength={8}
               className={inputClass} />
-            
           </div>
           {errors.password ?
           <p className="text-[11px] text-destructive">{errors.password}</p> :
-
           <p className="text-[11px] text-muted-foreground/50 pl-1">Минимум 8 символов</p>
           }
         </div>
@@ -268,12 +251,10 @@ const RegisterForm = ({
           type="button"
           onClick={() => {console.log('SWITCH_TO_LOGIN');onSwitchLogin();}}
           className="font-medium text-foreground underline hover:opacity-70 transition-opacity">
-          
           Войти
         </button>
       </p>
     </>);
-
 };
 
 /* ─── Main Auth Page ─── */
@@ -313,8 +294,8 @@ const Auth = () => {
         if (error) throw error;
 
         if (result.user) {
-          await supabase.from('profiles').update({ full_name: data.fullName }).eq('id', result.user.id);
-          await supabase.from('user_roles').insert({ user_id: result.user.id, role: data.role });
+          await (supabase.from('profiles').update({ full_name: data.fullName }).eq('id', result.user.id) as any);
+          await (supabase.from('user_roles').insert({ user_id: result.user.id, role: data.role }) as any);
         }
 
         if (result.session) {

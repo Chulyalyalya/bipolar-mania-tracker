@@ -6,7 +6,6 @@ import { BLOCKS } from '@/lib/questions';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { isFuture, isToday } from 'date-fns';
-import type { EntrySummary } from '@/types';
 import DonutStreak from '@/components/DonutStreak';
 import DailyNotes from '@/components/DailyNotes';
 import SustainedActivationBanner from '@/components/SustainedActivationBanner';
@@ -15,7 +14,7 @@ import { Check, ChevronRight } from 'lucide-react';
 const PatientHome = () => {
   const { user } = useAuth();
   const { selectedDate, dateStr } = useSelectedDate();
-  const [summary, setSummary] = useState<EntrySummary | null>(null);
+  const [blockSums, setBlockSums] = useState<Record<string, number> | null>(null);
   const [filledBlocks, setFilledBlocks] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
@@ -24,21 +23,22 @@ const PatientHome = () => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: entry } = await supabase
+      const { data: entry } = await (supabase
         .from('entries')
-        .select('id')
+        .select('id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum, total_risk_blocks_count')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
-        .single();
+        .maybeSingle() as any);
+
       if (entry) {
-        const [{ data: summaryData }, { data: answers }] = await Promise.all([
-          supabase.from('entry_summaries').select('*').eq('entry_id', entry.id).single(),
-          supabase.from('mania_answers').select('block_id').eq('entry_id', entry.id),
-        ]);
-        setSummary(summaryData as EntrySummary | null);
+        setBlockSums(entry);
+        const { data: answers } = await supabase
+          .from('mania_answers')
+          .select('block_id')
+          .eq('entry_id', entry.id);
         setFilledBlocks(new Set(answers?.map((a) => a.block_id) ?? []));
       } else {
-        setSummary(null);
+        setBlockSums(null);
         setFilledBlocks(new Set());
       }
     };
@@ -46,12 +46,12 @@ const PatientHome = () => {
   }, [user, dateStr]);
 
   const getBlockSum = (blockId: number): number | null => {
-    if (!summary) return null;
-    const key = `block${blockId}_sum` as keyof EntrySummary;
-    return summary[key] as number;
+    if (!blockSums) return null;
+    const key = `block${blockId}_sum`;
+    return (blockSums as any)[key] as number;
   };
 
-  const riskCount = summary?.total_risk_blocks_count ?? 0;
+  const riskCount = (blockSums as any)?.total_risk_blocks_count ?? 0;
 
   return (
     <div className="p-4 pb-20">
@@ -116,13 +116,13 @@ const PatientHome = () => {
                       <p className="text-[11px] text-muted-foreground truncate mt-0.5">{block.name}</p>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      {sum !== null && (
+                      {sum !== null && sum > 0 && (
                         <span className="text-sm font-semibold">{sum}</span>
                       )}
                       <div
                         className={cn(
                           'h-3 w-3 rounded-full',
-                          sum === null ? 'bg-muted' : isRisk ? 'bg-alert-red' : 'bg-alert-green'
+                          sum === null || !filledBlocks.has(block.id) ? 'bg-muted' : isRisk ? 'bg-alert-red' : 'bg-alert-green'
                         )}
                       />
                       <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
