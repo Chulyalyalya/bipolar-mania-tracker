@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,11 @@ interface LinkedDoctor {
   doctorCode: string | null;
 }
 
+interface LinkedPatient {
+  patientId: string;
+  fullName: string;
+}
+
 const Settings = () => {
   const { profile, role, user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -44,6 +50,9 @@ const Settings = () => {
   const [loadingDoctors, setLoadingDoctors] = useState(false);
 
   const [removingDoctor, setRemovingDoctor] = useState<LinkedDoctor | null>(null);
+
+  const [linkedPatients, setLinkedPatients] = useState<LinkedPatient[]>([]);
+  const [loadingPatients, setLoadingPatients] = useState(false);
 
   const fetchLinkedDoctors = useCallback(async () => {
     if (!user || role !== 'patient') return;
@@ -87,9 +96,48 @@ const Settings = () => {
     }
   }, [user, role]);
 
+  const fetchLinkedPatients = useCallback(async () => {
+    if (!user || role !== 'doctor') return;
+    setLoadingPatients(true);
+    try {
+      const { data: links } = await supabase
+        .from('doctor_patient_links')
+        .select('patient_user_id')
+        .eq('doctor_user_id', user.id)
+        .eq('status', 'active' as any);
+
+      if (!links?.length) {
+        setLinkedPatients([]);
+        setLoadingPatients(false);
+        return;
+      }
+
+      const patientIds = links.map((l) => l.patient_user_id);
+      const { data: profiles } = await (supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', patientIds) as any);
+
+      const patients: LinkedPatient[] = (profiles as any[])?.map((p: any) => ({
+        patientId: p.id,
+        fullName: p.full_name || 'Пациент',
+      })) ?? [];
+
+      setLinkedPatients(patients);
+    } catch (e) {
+      console.error('FETCH_PATIENTS_ERROR', e);
+    } finally {
+      setLoadingPatients(false);
+    }
+  }, [user, role]);
+
   useEffect(() => {
     fetchLinkedDoctors();
   }, [fetchLinkedDoctors]);
+
+  useEffect(() => {
+    fetchLinkedPatients();
+  }, [fetchLinkedPatients]);
 
   const handleConnect = async () => {
     console.log('CONNECT_DOCTOR', { doctorCode });
@@ -187,7 +235,7 @@ const Settings = () => {
           <p><span className="text-muted-foreground">Имя:</span> {profile?.full_name || '—'}</p>
           <p><span className="text-muted-foreground">Роль:</span> {role === 'doctor' ? 'Врач' : 'Пациент'}</p>
           {role === 'doctor' && profile?.doctor_code && (
-            <p><span className="text-muted-foreground">Код:</span> <span className="font-mono">{profile.doctor_code}</span></p>
+            <p><span className="text-muted-foreground">Код врача:</span> <span className="font-mono">{profile.doctor_code}</span></p>
           )}
         </div>
 
@@ -214,6 +262,34 @@ const Settings = () => {
           </div>
         )}
       </div>
+
+      {role === 'doctor' && (
+        <div className="glass-card p-5 space-y-3">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+            Подключенные пациенты
+          </p>
+          {loadingPatients ? (
+            <p className="text-sm text-muted-foreground">Загрузка…</p>
+          ) : linkedPatients.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Нет подключённых пациентов. Поделитесь своим кодом врача.
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              {linkedPatients.map((p) => (
+                <div
+                  key={p.patientId}
+                  className="flex items-center justify-between text-sm cursor-pointer hover:bg-card/60 rounded-xl px-2 py-1.5 -mx-2 transition-colors"
+                  onClick={() => navigate(`/patient/${p.patientId}`)}
+                >
+                  <span>{p.fullName}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {role === 'patient' && (
         <>
