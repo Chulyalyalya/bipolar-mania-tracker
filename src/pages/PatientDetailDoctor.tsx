@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
 import { useSelectedDate } from '@/contexts/DateContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BLOCKS } from '@/lib/questions';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Download } from 'lucide-react';
+import { ChevronLeft, Download, Check } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -12,6 +13,17 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { downloadWorkbook } from '@/lib/xlsxDownload';
+
+interface MedicationRow {
+  id: string;
+  medication_name: string;
+  dosage: string | null;
+}
+
+interface MedTracking {
+  morning_taken: boolean;
+  evening_taken: boolean;
+}
 
 const EXPORT_RANGES = [
   { label: '7D', days: 7 },
@@ -24,6 +36,7 @@ const PatientDetailDoctor = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { selectedDate, dateStr } = useSelectedDate();
+  const { user } = useAuth();
   const [patientName, setPatientName] = useState('');
   const [entryData, setEntryData] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
@@ -33,6 +46,10 @@ const PatientDetailDoctor = () => {
   const [useCustomRange, setUseCustomRange] = useState(false);
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
+
+  const [morningMeds, setMorningMeds] = useState<MedicationRow[]>([]);
+  const [eveningMeds, setEveningMeds] = useState<MedicationRow[]>([]);
+  const [medTracking, setMedTracking] = useState<MedTracking | null>(null);
 
   const today = new Date();
 
@@ -59,6 +76,33 @@ const PatientDetailDoctor = () => {
       setEntryData(entry);
     };
     load();
+  }, [patientId, dateStr]);
+
+  // Load pharmacology data
+  useEffect(() => {
+    if (!patientId) return;
+    const loadMeds = async () => {
+      const [medsRes, trackRes] = await Promise.all([
+        supabase
+          .from('medications' as any)
+          .select('id, period, medication_name, dosage')
+          .eq('user_id', patientId),
+        supabase
+          .from('medication_tracking' as any)
+          .select('morning_taken, evening_taken')
+          .eq('user_id', patientId)
+          .eq('entry_date', dateStr)
+          .maybeSingle(),
+      ]);
+
+      const meds = (medsRes.data as any[]) ?? [];
+      setMorningMeds(meds.filter((m: any) => m.period === 'morning'));
+      setEveningMeds(meds.filter((m: any) => m.period === 'evening'));
+
+      const track = trackRes.data as any;
+      setMedTracking(track ? { morning_taken: track.morning_taken, evening_taken: track.evening_taken } : null);
+    };
+    loadMeds();
   }, [patientId, dateStr]);
 
   useEffect(() => {
@@ -103,7 +147,7 @@ const PatientDetailDoctor = () => {
 
       let query = supabase
         .from('entries')
-        .select('id, entry_date, daily_note, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
+        .select('id, entry_date, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
         .eq('user_id', patientId)
         .order('entry_date', { ascending: true });
 
@@ -174,18 +218,62 @@ const PatientDetailDoctor = () => {
         XLSX.utils.book_append_sheet(wb, ws, `Блок ${block.id}`);
       }
 
-      const notesRows: string[][] = [['Дата', 'Заметка']];
-      entries.forEach((e: any) => {
-        const note = e.daily_note;
-        if (note) {
-          notesRows.push([e.entry_date, note]);
+      // Pharmacology sheet
+      try {
+        // Get all unique dates from entries
+        const allDates = entries.map((e: any) => e.entry_date);
+
+        // Get all medication tracking for this patient in the date range
+        let trackQuery = supabase
+          .from('medication_tracking' as any)
+          .select('entry_date, morning_taken, evening_taken')
+          .eq('user_id', patientId)
+          .order('entry_date', { ascending: true });
+
+        if (fromDate) trackQuery = trackQuery.gte('entry_date', fromDate) as any;
+        if (!isAll) trackQuery = trackQuery.lte('entry_date', toDate) as any;
+
+        const { data: trackingData } = await (trackQuery as any);
+
+        // Get medications
+        const { data: allMeds } = await (supabase
+          .from('medications' as any)
+          .select('medication_name, dosage, period')
+          .eq('user_id', patientId) as any);
+
+        const morningMedStr = (allMeds as any[] ?? [])
+          .filter((m: any) => m.period === 'morning')
+          .map((m: any) => `${m.medication_name}${m.dosage ? ' ' + m.dosage : ''}`)
+          .join(', ');
+        const eveningMedStr = (allMeds as any[] ?? [])
+          .filter((m: any) => m.period === 'evening')
+          .map((m: any) => `${m.medication_name}${m.dosage ? ' ' + m.dosage : ''}`)
+          .join(', ');
+
+        const trackMap = new Map((trackingData as any[] ?? []).map((t: any) => [t.entry_date, t]));
+
+        const pharmaRows: (string | boolean)[][] = [['Дата', 'Утро принято', 'Вечер принято', 'Утренние препараты', 'Вечерние препараты']];
+        allDates.forEach((date: string) => {
+          const t = trackMap.get(date) as any;
+          pharmaRows.push([
+            date,
+            t?.morning_taken ? 'Да' : 'Нет',
+            t?.evening_taken ? 'Да' : 'Нет',
+            morningMedStr || '—',
+            eveningMedStr || '—',
+          ]);
+        });
+
+        if (pharmaRows.length > 1) {
+          const pharmaWs = XLSX.utils.aoa_to_sheet(pharmaRows);
+          pharmaWs['!cols'] = [{ wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 40 }, { wch: 40 }];
+          XLSX.utils.book_append_sheet(wb, pharmaWs, 'Фармакология');
         }
-      });
-      if (notesRows.length > 1) {
-        const notesWs = XLSX.utils.aoa_to_sheet(notesRows);
-        notesWs['!cols'] = [{ wch: 12 }, { wch: 60 }];
-        XLSX.utils.book_append_sheet(wb, notesWs, 'Заметки');
+      } catch (pharmaErr) {
+        console.error('PHARMA_EXPORT_ERROR', pharmaErr);
       }
+
+      // NOTE: no notes sheet for doctor export — notes are private
 
       const safeName = patientName.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_');
       const fileSuffix = isAll ? 'ALL' : `${fromDate}_${toDate}`;
@@ -200,6 +288,8 @@ const PatientDetailDoctor = () => {
       setExporting(false);
     }
   }, [patientId, patientName, exportRangeIdx, useCustomRange, customFrom, customTo]);
+
+  const hasMeds = morningMeds.length > 0 || eveningMeds.length > 0;
 
   return (
     <div className="p-4 pb-20 space-y-4">
@@ -224,7 +314,7 @@ const PatientDetailDoctor = () => {
         </div>
       )}
 
-      {/* Block grid */}
+      {/* Block grid — clickable */}
       <div>
         <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
           Mania Checker
@@ -237,8 +327,9 @@ const PatientDetailDoctor = () => {
             return (
               <div
                 key={block.id}
+                onClick={() => navigate(`/patient/${patientId}/block/${block.id}`)}
                 className={cn(
-                  'glass-card transition-all',
+                  'glass-card transition-all cursor-pointer hover:shadow-md group',
                   isFullWidth && 'col-span-2'
                 )}
               >
@@ -262,6 +353,86 @@ const PatientDetailDoctor = () => {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Pharmacology card — read-only */}
+      <div>
+        <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+          Фармакология
+        </p>
+        <div className="glass-card divide-y divide-border/30">
+          {!hasMeds ? (
+            <div className="p-4">
+              <p className="text-xs text-muted-foreground text-center">
+                Пациент ещё не добавил препараты.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Morning */}
+              <div className="p-4 space-y-1.5">
+                <p className="text-sm font-medium">Утро</p>
+                {morningMeds.length > 0 ? (
+                  <div className="space-y-0.5">
+                    {morningMeds.map((m) => (
+                      <p key={m.id} className="text-[11px] text-muted-foreground">
+                        {m.medication_name}{m.dosage ? ` — ${m.dosage}` : ''}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">Нет препаратов</p>
+                )}
+                <div className="flex items-center gap-1.5 mt-1">
+                  {medTracking?.morning_taken ? (
+                    <>
+                      <div className="h-4 w-4 rounded-full bg-alert-green flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-background" />
+                      </div>
+                      <span className="text-[11px] text-alert-green">Приём отмечен</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-4 w-4 rounded-full bg-muted" />
+                      <span className="text-[11px] text-muted-foreground">Нет отметки</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Evening */}
+              <div className="p-4 space-y-1.5">
+                <p className="text-sm font-medium">Вечер</p>
+                {eveningMeds.length > 0 ? (
+                  <div className="space-y-0.5">
+                    {eveningMeds.map((m) => (
+                      <p key={m.id} className="text-[11px] text-muted-foreground">
+                        {m.medication_name}{m.dosage ? ` — ${m.dosage}` : ''}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">Нет препаратов</p>
+                )}
+                <div className="flex items-center gap-1.5 mt-1">
+                  {medTracking?.evening_taken ? (
+                    <>
+                      <div className="h-4 w-4 rounded-full bg-alert-green flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-background" />
+                      </div>
+                      <span className="text-[11px] text-alert-green">Приём отмечен</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-4 w-4 rounded-full bg-muted" />
+                      <span className="text-[11px] text-muted-foreground">Нет отметки</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

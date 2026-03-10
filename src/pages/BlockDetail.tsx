@@ -24,9 +24,9 @@ const RANGES = [
 ];
 
 const BlockDetail = () => {
-  const { blockId } = useParams<{ blockId: string }>();
+  const { blockId, patientId } = useParams<{ blockId: string; patientId?: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { selectedDate, dateStr } = useSelectedDate();
   const [scores, setScores] = useState<number[]>([]);
   const [entryId, setEntryId] = useState<string | null>(null);
@@ -34,6 +34,10 @@ const BlockDetail = () => {
   const [rangeIdx, setRangeIdx] = useState(0);
   const [chartData, setChartData] = useState<{ date: string; sum: number }[]>([]);
   const [lastEdited, setLastEdited] = useState<string | null>(null);
+
+  // Doctor viewing a patient's block = read-only
+  const isReadOnly = !!patientId;
+  const targetUserId = patientId || user?.id;
 
   const block = useMemo(() => BLOCKS.find((b) => b.id === Number(blockId)), [blockId]);
   const futureDate = isFuture(selectedDate) && !isToday(selectedDate);
@@ -43,12 +47,12 @@ const BlockDetail = () => {
 
   // Load existing answers
   useEffect(() => {
-    if (!user || !block) return;
+    if (!targetUserId || !block) return;
     const load = async () => {
       const { data: entry, error: entryError } = await supabase
         .from('entries')
         .select('id, last_edited_at')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .eq('entry_date', dateStr)
         .maybeSingle();
 
@@ -85,11 +89,11 @@ const BlockDetail = () => {
       }
     };
     load();
-  }, [user, dateStr, block]);
+  }, [targetUserId, dateStr, block]);
 
   // Load chart data — read block sums directly from entries table
   const loadChart = useCallback(async () => {
-    if (!user || !block) return;
+    if (!targetUserId || !block) return;
     const range = RANGES[rangeIdx];
     const from = format(subDays(new Date(), range.days), 'yyyy-MM-dd');
 
@@ -98,7 +102,7 @@ const BlockDetail = () => {
     const { data: entries } = await (supabase
       .from('entries')
       .select('entry_date, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .gte('entry_date', from)
       .order('entry_date', { ascending: true }) as any);
 
@@ -112,7 +116,7 @@ const BlockDetail = () => {
       sum: e[blockKey] ?? 0,
     }));
     setChartData(points);
-  }, [user, rangeIdx, block]);
+  }, [targetUserId, rangeIdx, block]);
 
   useEffect(() => {
     loadChart();
@@ -129,7 +133,7 @@ const BlockDetail = () => {
   };
 
   const handleSaveBlock = async () => {
-    if (!user || futureDate) return;
+    if (!user || futureDate || isReadOnly) return;
     const actionTag = entryId ? 'UPDATE_ENTRY' : 'SAVE_ENTRY';
     console.log(actionTag, { blockId: block.id, scores, total });
     setSaving(true);
@@ -224,7 +228,7 @@ const BlockDetail = () => {
   return (
     <div className="relative isolate p-4 pb-24 space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => navigate('/')}>
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => navigate(isReadOnly ? `/patient/${patientId}` : '/')}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <div>
@@ -250,14 +254,14 @@ const BlockDetail = () => {
                 <button
                   key={val}
                   type="button"
-                  onClick={() => { if (!futureDate) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
-                  disabled={futureDate}
+                  onClick={() => { if (!futureDate && !isReadOnly) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
+                  disabled={futureDate || isReadOnly}
                   className={cn(
                     'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all pointer-events-auto',
                     scores[qIdx] === val
                       ? 'bg-foreground border-foreground text-background shadow-sm'
                       : 'border-border/30 text-muted-foreground hover:border-primary/50 hover:bg-card/60',
-                    futureDate && 'opacity-50 cursor-not-allowed'
+                    (futureDate || isReadOnly) && 'opacity-50 cursor-not-allowed'
                   )}
                 >
                   {val}
@@ -275,7 +279,7 @@ const BlockDetail = () => {
         </span>
       </div>
 
-      {!futureDate && (
+      {!futureDate && !isReadOnly && (
         <div className="relative z-[120] pointer-events-auto">
           <button
             type="button"

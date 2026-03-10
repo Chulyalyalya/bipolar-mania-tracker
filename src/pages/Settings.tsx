@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,7 @@ import {
 import { cn } from '@/lib/utils';
 import PatientExportSection from '@/components/PatientExportSection';
 import MedicationSettings from '@/components/MedicationSettings';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface LinkedDoctor {
   linkId: string;
@@ -241,6 +242,19 @@ const Settings = () => {
 
         {role === 'patient' && linkedDoctors.length > 0 && (
           <div className="space-y-1.5 pt-1">
+            <div className="flex items-center gap-1.5">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Подключенные врачи</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button type="button" className="h-4 w-4 rounded-full border border-border/40 inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                    <Info className="h-2.5 w-2.5" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 text-xs leading-relaxed">
+                  Подключённый врач видит ваши оценки по блокам и может выгружать их. Также врач видит данные о приёме фармакологии: препараты, дозировки и отметки утро/вечер. Заметки врач не видит — это ваш личный дневник.
+                </PopoverContent>
+              </Popover>
+            </div>
             {linkedDoctors.map((doc) => (
               <div key={doc.linkId} className="flex items-center justify-between text-sm">
                 <p>
