@@ -102,7 +102,7 @@ const BlockDetail = () => {
     const { data: entries } = await (supabase
       .from('entries')
       .select('entry_date, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .gte('entry_date', from)
       .order('entry_date', { ascending: true }) as any);
 
