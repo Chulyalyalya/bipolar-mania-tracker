@@ -25,6 +25,8 @@ import {
 import { cn } from '@/lib/utils';
 import PatientExportSection from '@/components/PatientExportSection';
 import MedicationSettings from '@/components/MedicationSettings';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import MedicationSettings from '@/components/MedicationSettings';
 
 interface LinkedDoctor {
   linkId: string;
