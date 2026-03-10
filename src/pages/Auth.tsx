@@ -288,13 +288,13 @@ const Auth = () => {
           password: data.password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: data.fullName }
+            data: { full_name: data.fullName, role: data.role }
           }
         });
         if (error) throw error;
 
         if (result.user) {
-          await (supabase.from('profiles').update({ full_name: data.fullName }).eq('id', result.user.id) as any);
+          await (supabase.from('profiles').update({ full_name: data.fullName, role: data.role }).eq('id', result.user.id) as any);
           await (supabase.from('user_roles').insert({ user_id: result.user.id, role: data.role }) as any);
         }
 
