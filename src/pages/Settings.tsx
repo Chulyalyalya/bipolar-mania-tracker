@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import PatientExportSection from '@/components/PatientExportSection';
+import MedicationSettings from '@/components/MedicationSettings';
 
 interface LinkedDoctor {
   linkId: string;
@@ -223,6 +224,8 @@ const Settings = () => {
           >
             {linkedDoctors.length > 0 ? 'Добавить ещё одного врача' : 'Добавить врача'}
           </button>
+
+          <MedicationSettings />
 
           <PatientExportSection />
         </>

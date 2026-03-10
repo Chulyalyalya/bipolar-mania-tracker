@@ -148,6 +148,66 @@ export type Database = {
           },
         ]
       }
+      medication_tracking: {
+        Row: {
+          created_at: string
+          entry_date: string
+          evening_taken: boolean
+          id: string
+          morning_taken: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_date: string
+          evening_taken?: boolean
+          id?: string
+          morning_taken?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          evening_taken?: boolean
+          id?: string
+          morning_taken?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      medications: {
+        Row: {
+          created_at: string
+          dosage: string | null
+          id: string
+          medication_name: string
+          period: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage?: string | null
+          id?: string
+          medication_name: string
+          period: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string | null
+          id?: string
+          medication_name?: string
+          period?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
