@@ -95,9 +95,48 @@ const Settings = () => {
     }
   }, [user, role]);
 
+  const fetchLinkedPatients = useCallback(async () => {
+    if (!user || role !== 'doctor') return;
+    setLoadingPatients(true);
+    try {
+      const { data: links } = await supabase
+        .from('doctor_patient_links')
+        .select('patient_user_id')
+        .eq('doctor_user_id', user.id)
+        .eq('status', 'active' as any);
+
+      if (!links?.length) {
+        setLinkedPatients([]);
+        setLoadingPatients(false);
+        return;
+      }
+
+      const patientIds = links.map((l) => l.patient_user_id);
+      const { data: profiles } = await (supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', patientIds) as any);
+
+      const patients: LinkedPatient[] = (profiles as any[])?.map((p: any) => ({
+        patientId: p.id,
+        fullName: p.full_name || 'Пациент',
+      })) ?? [];
+
+      setLinkedPatients(patients);
+    } catch (e) {
+      console.error('FETCH_PATIENTS_ERROR', e);
+    } finally {
+      setLoadingPatients(false);
+    }
+  }, [user, role]);
+
   useEffect(() => {
     fetchLinkedDoctors();
   }, [fetchLinkedDoctors]);
+
+  useEffect(() => {
+    fetchLinkedPatients();
+  }, [fetchLinkedPatients]);
 
   const handleConnect = async () => {
     console.log('CONNECT_DOCTOR', { doctorCode });
