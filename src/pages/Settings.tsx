@@ -225,6 +225,8 @@ const Settings = () => {
             {linkedDoctors.length > 0 ? 'Добавить ещё одного врача' : 'Добавить врача'}
           </button>
 
+          <MedicationSettings />
+
           <PatientExportSection />
         </>
       )}

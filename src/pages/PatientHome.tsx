@@ -133,6 +133,8 @@ const PatientHome = () => {
               );
             })}
           </div>
+
+          <MedicationTracker />
         </div>
       </div>
     </div>
