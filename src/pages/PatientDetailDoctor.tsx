@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
 import { useSelectedDate } from '@/contexts/DateContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BLOCKS } from '@/lib/questions';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Download } from 'lucide-react';
+import { ChevronLeft, Download, Check } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -12,6 +13,17 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { downloadWorkbook } from '@/lib/xlsxDownload';
+
+interface MedicationRow {
+  id: string;
+  medication_name: string;
+  dosage: string | null;
+}
+
+interface MedTracking {
+  morning_taken: boolean;
+  evening_taken: boolean;
+}
 
 const EXPORT_RANGES = [
   { label: '7D', days: 7 },
