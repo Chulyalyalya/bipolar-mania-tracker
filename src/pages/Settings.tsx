@@ -234,7 +234,7 @@ const Settings = () => {
           <p><span className="text-muted-foreground">Имя:</span> {profile?.full_name || '—'}</p>
           <p><span className="text-muted-foreground">Роль:</span> {role === 'doctor' ? 'Врач' : 'Пациент'}</p>
           {role === 'doctor' && profile?.doctor_code && (
-            <p><span className="text-muted-foreground">Код:</span> <span className="font-mono">{profile.doctor_code}</span></p>
+            <p><span className="text-muted-foreground">Код врача:</span> <span className="font-mono">{profile.doctor_code}</span></p>
           )}
         </div>
 
