@@ -20,7 +20,7 @@ export type Database = {
           doctor_user_id: string
           id: string
           patient_user_id: string
-          status: Database["public"]["Enums"]["link_status"]
+          status: string
           updated_at: string
         }
         Insert: {
@@ -28,7 +28,7 @@ export type Database = {
           doctor_user_id: string
           id?: string
           patient_user_id: string
-          status?: Database["public"]["Enums"]["link_status"]
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -36,163 +36,85 @@ export type Database = {
           doctor_user_id?: string
           id?: string
           patient_user_id?: string
-          status?: Database["public"]["Enums"]["link_status"]
+          status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "doctor_patient_links_doctor_user_id_fkey"
+            columns: ["doctor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "doctor_patient_links_patient_user_id_fkey"
+            columns: ["patient_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       entries: {
         Row: {
+          block1_sum: number
+          block2_sum: number
+          block3_sum: number
+          block4_sum: number
+          block5_sum: number
+          block6_sum: number
+          block7_sum: number
           created_at: string
           daily_note: string | null
           entered_at: string | null
           entry_date: string
+          flags: Json
           id: string
           last_edited_at: string | null
+          total_risk_blocks_count: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          block1_sum?: number
+          block2_sum?: number
+          block3_sum?: number
+          block4_sum?: number
+          block5_sum?: number
+          block6_sum?: number
+          block7_sum?: number
           created_at?: string
           daily_note?: string | null
           entered_at?: string | null
           entry_date: string
+          flags?: Json
           id?: string
           last_edited_at?: string | null
+          total_risk_blocks_count?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          block1_sum?: number
+          block2_sum?: number
+          block3_sum?: number
+          block4_sum?: number
+          block5_sum?: number
+          block6_sum?: number
+          block7_sum?: number
           created_at?: string
           daily_note?: string | null
           entered_at?: string | null
           entry_date?: string
+          flags?: Json
           id?: string
           last_edited_at?: string | null
+          total_risk_blocks_count?: number
           updated_at?: string
           user_id?: string
         }
         Relationships: []
-      }
-      entry_summaries: {
-        Row: {
-          block1_sum: number | null
-          block2_sum: number | null
-          block3_sum: number | null
-          block4_sum: number | null
-          block5_sum: number | null
-          block6_sum: number | null
-          block7_sum: number | null
-          entry_id: string
-          high_risk_sleep: boolean | null
-          sustained_activation: boolean | null
-          total_risk_blocks_count: number | null
-        }
-        Insert: {
-          block1_sum?: number | null
-          block2_sum?: number | null
-          block3_sum?: number | null
-          block4_sum?: number | null
-          block5_sum?: number | null
-          block6_sum?: number | null
-          block7_sum?: number | null
-          entry_id: string
-          high_risk_sleep?: boolean | null
-          sustained_activation?: boolean | null
-          total_risk_blocks_count?: number | null
-        }
-        Update: {
-          block1_sum?: number | null
-          block2_sum?: number | null
-          block3_sum?: number | null
-          block4_sum?: number | null
-          block5_sum?: number | null
-          block6_sum?: number | null
-          block7_sum?: number | null
-          entry_id?: string
-          high_risk_sleep?: boolean | null
-          sustained_activation?: boolean | null
-          total_risk_blocks_count?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "entry_summaries_entry_id_fkey"
-            columns: ["entry_id"]
-            isOneToOne: true
-            referencedRelation: "entries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ipsrt_anchors: {
-        Row: {
-          bedtime: string | null
-          entry_id: string
-          first_meal_time: string | null
-          last_meal_time: string | null
-          main_social_anchor_time: string | null
-          wake_time: string | null
-        }
-        Insert: {
-          bedtime?: string | null
-          entry_id: string
-          first_meal_time?: string | null
-          last_meal_time?: string | null
-          main_social_anchor_time?: string | null
-          wake_time?: string | null
-        }
-        Update: {
-          bedtime?: string | null
-          entry_id?: string
-          first_meal_time?: string | null
-          last_meal_time?: string | null
-          main_social_anchor_time?: string | null
-          wake_time?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ipsrt_anchors_entry_id_fkey"
-            columns: ["entry_id"]
-            isOneToOne: true
-            referencedRelation: "entries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ipsrt_ratings: {
-        Row: {
-          entry_id: string
-          rating_q1: number | null
-          rating_q2: number | null
-          rating_q3: number | null
-          rating_q4: number | null
-          rhythm_stability_score: number | null
-        }
-        Insert: {
-          entry_id: string
-          rating_q1?: number | null
-          rating_q2?: number | null
-          rating_q3?: number | null
-          rating_q4?: number | null
-          rhythm_stability_score?: number | null
-        }
-        Update: {
-          entry_id?: string
-          rating_q1?: number | null
-          rating_q2?: number | null
-          rating_q3?: number | null
-          rating_q4?: number | null
-          rhythm_stability_score?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ipsrt_ratings_entry_id_fkey"
-            columns: ["entry_id"]
-            isOneToOne: true
-            referencedRelation: "entries"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       mania_answers: {
         Row: {
@@ -207,7 +129,7 @@ export type Database = {
           entry_id: string
           id?: string
           question_id: number
-          score?: number
+          score: number
         }
         Update: {
           block_id?: number
@@ -228,42 +150,27 @@ export type Database = {
       }
       profiles: {
         Row: {
-          created_at: string | null
+          created_at: string
           doctor_code: string | null
           full_name: string | null
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          doctor_code?: string | null
-          full_name?: string | null
-          id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          doctor_code?: string | null
-          full_name?: string | null
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
+          role: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
+          created_at?: string
+          doctor_code?: string | null
+          full_name?: string | null
+          role: string
+          updated_at?: string
           user_id: string
         }
         Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          created_at?: string
+          doctor_code?: string | null
+          full_name?: string | null
+          role?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -273,18 +180,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_doctor_code: { Args: never; Returns: string }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "doctor" | "patient"
-      link_status: "pending" | "active" | "revoked"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -411,9 +310,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["doctor", "patient"],
-      link_status: ["pending", "active", "revoked"],
-    },
+    Enums: {},
   },
 } as const
