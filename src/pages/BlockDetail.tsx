@@ -89,7 +89,7 @@ const BlockDetail = () => {
       }
     };
     load();
-  }, [user, dateStr, block]);
+  }, [targetUserId, dateStr, block]);
 
   // Load chart data — read block sums directly from entries table
   const loadChart = useCallback(async () => {
