@@ -116,7 +116,7 @@ const BlockDetail = () => {
       sum: e[blockKey] ?? 0,
     }));
     setChartData(points);
-  }, [user, rangeIdx, block]);
+  }, [targetUserId, rangeIdx, block]);
 
   useEffect(() => {
     loadChart();
