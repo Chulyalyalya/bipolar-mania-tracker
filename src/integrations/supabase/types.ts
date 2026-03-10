@@ -45,14 +45,14 @@ export type Database = {
             columns: ["doctor_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "doctor_patient_links_patient_user_id_fkey"
             columns: ["patient_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -153,22 +153,43 @@ export type Database = {
           created_at: string
           doctor_code: string | null
           full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doctor_code?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doctor_code?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
           role: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          doctor_code?: string | null
-          full_name?: string | null
           role: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          doctor_code?: string | null
-          full_name?: string | null
           role?: string
           updated_at?: string
           user_id?: string
