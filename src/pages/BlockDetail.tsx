@@ -24,9 +24,9 @@ const RANGES = [
 ];
 
 const BlockDetail = () => {
-  const { blockId } = useParams<{ blockId: string }>();
+  const { blockId, patientId } = useParams<{ blockId: string; patientId?: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { selectedDate, dateStr } = useSelectedDate();
   const [scores, setScores] = useState<number[]>([]);
   const [entryId, setEntryId] = useState<string | null>(null);
@@ -34,6 +34,10 @@ const BlockDetail = () => {
   const [rangeIdx, setRangeIdx] = useState(0);
   const [chartData, setChartData] = useState<{ date: string; sum: number }[]>([]);
   const [lastEdited, setLastEdited] = useState<string | null>(null);
+
+  // Doctor viewing a patient's block = read-only
+  const isReadOnly = !!patientId;
+  const targetUserId = patientId || user?.id;
 
   const block = useMemo(() => BLOCKS.find((b) => b.id === Number(blockId)), [blockId]);
   const futureDate = isFuture(selectedDate) && !isToday(selectedDate);
