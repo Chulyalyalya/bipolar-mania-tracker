@@ -36,6 +36,7 @@ const PatientDetailDoctor = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { selectedDate, dateStr } = useSelectedDate();
+  const { user } = useAuth();
   const [patientName, setPatientName] = useState('');
   const [entryData, setEntryData] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
@@ -45,6 +46,10 @@ const PatientDetailDoctor = () => {
   const [useCustomRange, setUseCustomRange] = useState(false);
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
+
+  const [morningMeds, setMorningMeds] = useState<MedicationRow[]>([]);
+  const [eveningMeds, setEveningMeds] = useState<MedicationRow[]>([]);
+  const [medTracking, setMedTracking] = useState<MedTracking | null>(null);
 
   const today = new Date();
 

@@ -77,6 +77,7 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/" element={<DoctorHome />} />
           <Route path="/patient/:patientId" element={<PatientDetailDoctor />} />
+          <Route path="/patient/:patientId/block/:blockId" element={<BlockDetail />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
