@@ -254,14 +254,14 @@ const BlockDetail = () => {
                 <button
                   key={val}
                   type="button"
-                  onClick={() => { if (!futureDate) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
-                  disabled={futureDate}
+                  onClick={() => { if (!futureDate && !isReadOnly) { console.log('SCORE_SELECT', { qIdx, val }); setScore(qIdx, val); } }}
+                  disabled={futureDate || isReadOnly}
                   className={cn(
                     'h-9 w-9 rounded-xl border-2 text-xs font-medium transition-all pointer-events-auto',
                     scores[qIdx] === val
                       ? 'bg-foreground border-foreground text-background shadow-sm'
                       : 'border-border/30 text-muted-foreground hover:border-primary/50 hover:bg-card/60',
-                    futureDate && 'opacity-50 cursor-not-allowed'
+                    (futureDate || isReadOnly) && 'opacity-50 cursor-not-allowed'
                   )}
                 >
                   {val}
