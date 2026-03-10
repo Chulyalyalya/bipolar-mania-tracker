@@ -27,17 +27,15 @@ const Onboarding = () => {
     if (!user || !selectedRole) return;
     setLoading(true);
     try {
-      // Update profile name
-      const { error: profileErr } = await supabase
+      const { error: profileErr } = await (supabase
         .from('profiles')
         .update({ full_name: fullName })
-        .eq('id', user.id);
+        .eq('id', user.id) as any);
       if (profileErr) throw profileErr;
 
-      // Assign role
-      const { error: roleErr } = await supabase
+      const { error: roleErr } = await (supabase
         .from('user_roles')
-        .insert({ user_id: user.id, role: selectedRole });
+        .insert({ user_id: user.id, role: selectedRole }) as any);
       if (roleErr) throw roleErr;
 
       if (selectedRole === 'patient') {
@@ -58,18 +56,16 @@ const Onboarding = () => {
     setLoading(true);
     try {
       if (!skip && doctorCode.length === 9) {
-        // Find doctor by code
-        const { data: doctor, error: findErr } = await supabase
+        const { data: doctor, error: findErr } = await (supabase
           .from('profiles')
           .select('id')
           .eq('doctor_code', doctorCode.toUpperCase())
-          .single();
+          .single() as any);
         if (findErr || !doctor) {
           toast.error('Врач не найден');
           setLoading(false);
           return;
         }
-        // Create link
         const { error: linkErr } = await supabase
           .from('doctor_patient_links')
           .insert({ doctor_user_id: doctor.id, patient_user_id: user.id });

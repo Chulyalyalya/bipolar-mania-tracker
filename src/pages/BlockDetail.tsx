@@ -87,42 +87,30 @@ const BlockDetail = () => {
     load();
   }, [user, dateStr, block]);
 
-  // Load chart data
+  // Load chart data — read block sums directly from entries table
   const loadChart = useCallback(async () => {
     if (!user || !block) return;
     const range = RANGES[rangeIdx];
     const from = format(subDays(new Date(), range.days), 'yyyy-MM-dd');
 
-    const { data: entries } = await supabase
+    const blockKey = `block${block.id}_sum`;
+
+    const { data: entries } = await (supabase
       .from('entries')
-      .select('id, entry_date')
+      .select('entry_date, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
       .eq('user_id', user.id)
       .gte('entry_date', from)
-      .order('entry_date', { ascending: true });
+      .order('entry_date', { ascending: true }) as any);
 
     if (!entries?.length) {
       setChartData([]);
       return;
     }
 
-    const entryIds = entries.map((e) => e.id);
-    const { data: summaries } = await supabase
-      .from('entry_summaries')
-      .select('entry_id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
-      .in('entry_id', entryIds);
-
-    const sumMap = new Map<string, number>();
-    summaries?.forEach((s) => {
-      const key = `block${block.id}_sum` as keyof typeof s;
-      sumMap.set(s.entry_id, (s[key] as number) ?? 0);
-    });
-
-    const points = entries
-      .filter((e) => sumMap.has(e.id))
-      .map((e) => ({
-        date: format(new Date(e.entry_date), 'd MMM', { locale: ru }),
-        sum: sumMap.get(e.id) ?? 0,
-      }));
+    const points = entries.map((e: any) => ({
+      date: format(new Date(e.entry_date), 'd MMM', { locale: ru }),
+      sum: e[blockKey] ?? 0,
+    }));
     setChartData(points);
   }, [user, rangeIdx, block]);
 
@@ -150,30 +138,30 @@ const BlockDetail = () => {
       const now = new Date().toISOString();
 
       if (!eid) {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase
           .from('entries')
           .upsert(
-            { user_id: user.id, entry_date: dateStr, entered_at: now, last_edited_at: now } as any,
+            { user_id: user.id, entry_date: dateStr, entered_at: now, last_edited_at: now },
             { onConflict: 'user_id,entry_date' }
           )
           .select('id')
-          .single();
+          .single() as any);
         if (error || !data?.id) throw error || new Error('Не удалось создать запись');
         eid = data.id;
         setEntryId(eid);
       } else {
-        const { error: updateEntryError } = await supabase
+        const { error: updateEntryError } = await (supabase
           .from('entries')
-          .update({ last_edited_at: now } as any)
-          .eq('id', eid);
+          .update({ last_edited_at: now })
+          .eq('id', eid) as any);
         if (updateEntryError) throw updateEntryError;
       }
 
-      const { error: deleteAnswersError } = await supabase
+      const { error: deleteAnswersError } = await (supabase
         .from('mania_answers')
         .delete()
         .eq('entry_id', eid!)
-        .eq('block_id', block.id);
+        .eq('block_id', block.id) as any);
       if (deleteAnswersError) throw deleteAnswersError;
 
       const rows = scores.map((score, qIdx) => ({
@@ -188,6 +176,7 @@ const BlockDetail = () => {
         .insert(rows);
       if (insertErr) throw insertErr;
 
+      // Recompute all block sums from mania_answers
       const { data: allAnswers, error: allAnswersError } = await supabase
         .from('mania_answers')
         .select('block_id, score')
@@ -203,14 +192,16 @@ const BlockDetail = () => {
 
       const riskCount = Object.values(blockSums).filter((v) => v > 4).length;
 
-      const { error: summaryUpsertError } = await supabase
-        .from('entry_summaries')
-        .upsert({
-          entry_id: eid!,
+      // Update entries row directly
+      const { error: updateSumsError } = await (supabase
+        .from('entries')
+        .update({
           ...blockSums,
           total_risk_blocks_count: riskCount,
-        } as any, { onConflict: 'entry_id' });
-      if (summaryUpsertError) throw summaryUpsertError;
+          last_edited_at: now,
+        })
+        .eq('id', eid!) as any);
+      if (updateSumsError) throw updateSumsError;
 
       setLastEdited(now);
       toast.success('Сохранено');

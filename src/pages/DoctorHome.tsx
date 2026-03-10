@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChevronRight, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { EntrySummary } from '@/types';
 
 interface PatientRow {
   patientId: string;
@@ -39,39 +38,29 @@ const DoctorHome = () => {
 
       const patientIds = links.map((l) => l.patient_user_id);
 
-      const { data: profiles } = await supabase
+      const { data: profiles } = await (supabase
         .from('profiles')
         .select('id, full_name')
-        .in('id', patientIds);
+        .in('id', patientIds) as any);
 
-      const profileMap = new Map(profiles?.map((p) => [p.id, p.full_name]) ?? []);
+      const profileMap = new Map((profiles as any[])?.map((p: any) => [p.id, p.full_name]) ?? []);
 
       const rows: PatientRow[] = [];
 
       for (const pid of patientIds) {
-        const { data: lastEntry } = await supabase
+        const { data: lastEntry } = await (supabase
           .from('entries')
-          .select('id, entry_date')
+          .select('entry_date, total_risk_blocks_count')
           .eq('user_id', pid)
           .order('entry_date', { ascending: false })
           .limit(1)
-          .maybeSingle();
-
-        let riskCount = 0;
-        if (lastEntry) {
-          const { data: summary } = await supabase
-            .from('entry_summaries')
-            .select('total_risk_blocks_count')
-            .eq('entry_id', lastEntry.id)
-            .maybeSingle();
-          riskCount = (summary as any)?.total_risk_blocks_count ?? 0;
-        }
+          .maybeSingle() as any);
 
         rows.push({
           patientId: pid,
           fullName: profileMap.get(pid) || 'Пациент',
           lastEntryDate: lastEntry?.entry_date ?? null,
-          riskCount,
+          riskCount: lastEntry?.total_risk_blocks_count ?? 0,
         });
       }
 

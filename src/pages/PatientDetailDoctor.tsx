@@ -12,7 +12,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { downloadWorkbook } from '@/lib/xlsxDownload';
-import type { EntrySummary } from '@/types';
 
 const EXPORT_RANGES = [
   { label: '7D', days: 7 },
@@ -26,7 +25,7 @@ const PatientDetailDoctor = () => {
   const navigate = useNavigate();
   const { selectedDate, dateStr } = useSelectedDate();
   const [patientName, setPatientName] = useState('');
-  const [summary, setSummary] = useState<EntrySummary | null>(null);
+  const [entryData, setEntryData] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
   const [hasData, setHasData] = useState(true);
 
@@ -39,34 +38,25 @@ const PatientDetailDoctor = () => {
 
   useEffect(() => {
     if (!patientId) return;
-    supabase
+    (supabase
       .from('profiles')
       .select('full_name')
       .eq('id', patientId)
-      .single()
-      .then(({ data }) => setPatientName(data?.full_name || 'Пациент'));
+      .single() as any)
+      .then(({ data }: any) => setPatientName(data?.full_name || 'Пациент'));
   }, [patientId]);
 
   useEffect(() => {
     if (!patientId) return;
     const load = async () => {
-      const { data: entry } = await supabase
+      const { data: entry } = await (supabase
         .from('entries')
-        .select('id')
+        .select('block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum, total_risk_blocks_count')
         .eq('user_id', patientId)
         .eq('entry_date', dateStr)
-        .maybeSingle();
+        .maybeSingle() as any);
 
-      if (entry) {
-        const { data } = await supabase
-          .from('entry_summaries')
-          .select('*')
-          .eq('entry_id', entry.id)
-          .maybeSingle();
-        setSummary(data as EntrySummary | null);
-      } else {
-        setSummary(null);
-      }
+      setEntryData(entry);
     };
     load();
   }, [patientId, dateStr]);
@@ -82,12 +72,12 @@ const PatientDetailDoctor = () => {
   }, [patientId]);
 
   const getBlockSum = (blockId: number): number | null => {
-    if (!summary) return null;
-    const key = `block${blockId}_sum` as keyof EntrySummary;
-    return summary[key] as number;
+    if (!entryData) return null;
+    const key = `block${blockId}_sum`;
+    return entryData[key] as number;
   };
 
-  const riskCount = summary?.total_risk_blocks_count ?? 0;
+  const riskCount = entryData?.total_risk_blocks_count ?? 0;
   const isCustomValid = useCustomRange ? !!(customFrom && customTo && customFrom <= customTo) : true;
 
   const handleExport = useCallback(async () => {
@@ -113,14 +103,14 @@ const PatientDetailDoctor = () => {
 
       let query = supabase
         .from('entries')
-        .select('id, entry_date, daily_note')
+        .select('id, entry_date, daily_note, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
         .eq('user_id', patientId)
         .order('entry_date', { ascending: true });
 
       if (fromDate) query = query.gte('entry_date', fromDate);
       if (!isAll) query = query.lte('entry_date', toDate);
 
-      const { data: entries, error: entriesError } = await query;
+      const { data: entries, error: entriesError } = await (query as any);
       if (entriesError) throw entriesError;
 
       if (!entries?.length) {
@@ -128,22 +118,13 @@ const PatientDetailDoctor = () => {
         return;
       }
 
-      const entryIds = entries.map((e) => e.id);
+      const entryIds = entries.map((e: any) => e.id);
 
       const { data: answers, error: answersError } = await supabase
         .from('mania_answers')
         .select('entry_id, block_id, question_id, score')
         .in('entry_id', entryIds);
       if (answersError) throw answersError;
-
-      const { data: summaries, error: summariesError } = await supabase
-        .from('entry_summaries')
-        .select('entry_id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum')
-        .in('entry_id', entryIds);
-      if (summariesError) throw summariesError;
-
-      const summaryMap = new Map<string, any>();
-      summaries?.forEach((s) => summaryMap.set(s.entry_id, s));
 
       const dataMap: Record<number, Record<number, Record<string, number>>> = {};
       answers?.forEach((a) => {
@@ -156,10 +137,10 @@ const PatientDetailDoctor = () => {
 
       for (const block of BLOCKS) {
         const blockData = dataMap[block.id] || {};
-        const sortedDates = entries.map((e) => e.entry_date);
+        const sortedDates = entries.map((e: any) => e.entry_date);
 
-        const datesWithData = sortedDates.filter((date) => {
-          const eid = entries.find((e) => e.entry_date === date)?.id;
+        const datesWithData = sortedDates.filter((date: string) => {
+          const eid = entries.find((e: any) => e.entry_date === date)?.id;
           if (!eid) return false;
           return block.questions.some((_, qIdx) => blockData[qIdx]?.[eid] !== undefined);
         });
@@ -168,8 +149,8 @@ const PatientDetailDoctor = () => {
 
         const rows = block.questions.map((q, qIdx) => {
           const row: (string | number)[] = [q];
-          datesWithData.forEach((date) => {
-            const eid = entries.find((e) => e.entry_date === date)?.id;
+          datesWithData.forEach((date: string) => {
+            const eid = entries.find((e: any) => e.entry_date === date)?.id;
             const score = eid ? blockData[qIdx]?.[eid] : undefined;
             row.push(score !== undefined ? score : '');
           });
@@ -177,12 +158,11 @@ const PatientDetailDoctor = () => {
         });
 
         const sumRow: (string | number)[] = ['Сумма блока'];
-        datesWithData.forEach((date) => {
-          const eid = entries.find((e) => e.entry_date === date)?.id;
-          if (eid) {
-            const s = summaryMap.get(eid);
+        datesWithData.forEach((date: string) => {
+          const entry = entries.find((e: any) => e.entry_date === date);
+          if (entry) {
             const key = `block${block.id}_sum`;
-            sumRow.push(s?.[key] ?? '');
+            sumRow.push(entry[key] ?? '');
           } else {
             sumRow.push('');
           }
@@ -195,8 +175,8 @@ const PatientDetailDoctor = () => {
       }
 
       const notesRows: string[][] = [['Дата', 'Заметка']];
-      entries.forEach((e) => {
-        const note = (e as any).daily_note;
+      entries.forEach((e: any) => {
+        const note = e.daily_note;
         if (note) {
           notesRows.push([e.entry_date, note]);
         }
@@ -244,7 +224,7 @@ const PatientDetailDoctor = () => {
         </div>
       )}
 
-      {/* Block grid — same layout as patient home */}
+      {/* Block grid */}
       <div>
         <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
           Mania Checker

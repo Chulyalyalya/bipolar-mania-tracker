@@ -14,29 +14,18 @@ const SustainedActivationBanner = () => {
       const today = new Date();
       const dates = [0, 1, 2].map((i) => format(subDays(today, i), 'yyyy-MM-dd'));
 
-      const { data: entries } = await supabase
+      const { data: entries } = await (supabase
         .from('entries')
-        .select('id, entry_date')
+        .select('total_risk_blocks_count')
         .eq('user_id', user.id)
-        .in('entry_date', dates);
+        .in('entry_date', dates) as any);
 
       if (!entries || entries.length < 3) {
         setShow(false);
         return;
       }
 
-      const entryIds = entries.map((e) => e.id);
-      const { data: summaries } = await supabase
-        .from('entry_summaries')
-        .select('entry_id, total_risk_blocks_count')
-        .in('entry_id', entryIds);
-
-      if (!summaries || summaries.length < 3) {
-        setShow(false);
-        return;
-      }
-
-      const allHighRisk = summaries.every((s) => (s.total_risk_blocks_count ?? 0) >= 3);
+      const allHighRisk = entries.every((e: any) => (e.total_risk_blocks_count ?? 0) >= 3);
       setShow(allHighRisk);
     };
 

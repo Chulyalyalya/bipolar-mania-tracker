@@ -17,21 +17,41 @@ const DonutStreak = () => {
         datesToCheck.push(format(subDays(new Date(), i), 'yyyy-MM-dd'));
       }
 
-      const { data: entries } = await supabase
+      // Get entries for these dates
+      const { data: entries } = await (supabase
         .from('entries')
-        .select('entry_date, entered_at')
+        .select('id, entry_date')
         .eq('user_id', user.id)
-        .in('entry_date', datesToCheck)
-        .order('entry_date', { ascending: false });
+        .in('entry_date', datesToCheck) as any);
 
-      const entrySet = new Set(
-        entries?.filter((e) => e.entered_at !== null).map((e) => e.entry_date) ?? []
-      );
+      if (!entries?.length) {
+        setStreak(0);
+        return;
+      }
 
+      const entryIds = entries.map((e: any) => e.id);
+
+      // Check which entries actually have mania_answers
+      const { data: answers } = await supabase
+        .from('mania_answers')
+        .select('entry_id')
+        .in('entry_id', entryIds);
+
+      const entriesWithAnswers = new Set(answers?.map((a) => a.entry_id) ?? []);
+
+      // Build set of completed dates (dates that have at least one answer)
+      const completedDates = new Set<string>();
+      entries.forEach((e: any) => {
+        if (entriesWithAnswers.has(e.id)) {
+          completedDates.add(e.entry_date);
+        }
+      });
+
+      // Count consecutive days from today
       let count = 0;
       for (let i = 0; i < checkDays; i++) {
         const d = format(subDays(new Date(), i), 'yyyy-MM-dd');
-        if (entrySet.has(d)) {
+        if (completedDates.has(d)) {
           count++;
         } else {
           break;

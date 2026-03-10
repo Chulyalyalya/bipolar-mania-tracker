@@ -16,14 +16,14 @@ const DailyNotes = ({ className }: { className?: string }) => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: entry } = await supabase
+      const { data: entry } = await (supabase
         .from('entries')
         .select('daily_note')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
-        .maybeSingle();
+        .maybeSingle() as any);
 
-      setNote((entry as any)?.daily_note || '');
+      setNote(entry?.daily_note || '');
       setLoadedDate(dateStr);
     };
     load();
@@ -39,20 +39,20 @@ const DailyNotes = ({ className }: { className?: string }) => {
 
     const now = new Date().toISOString();
 
-    const { data: entry } = await supabase
+    const { data: entry } = await (supabase
       .from('entries')
       .upsert(
-        { user_id: user.id, entry_date: dateStr, entered_at: now, last_edited_at: now } as any,
+        { user_id: user.id, entry_date: dateStr, entered_at: now, last_edited_at: now },
         { onConflict: 'user_id,entry_date' }
       )
       .select('id')
-      .single();
+      .single() as any);
 
     if (entry) {
-      await supabase
+      await (supabase
         .from('entries')
-        .update({ daily_note: note, last_edited_at: now } as any)
-        .eq('id', entry.id);
+        .update({ daily_note: note, last_edited_at: now })
+        .eq('id', entry.id) as any);
     }
   };
 
