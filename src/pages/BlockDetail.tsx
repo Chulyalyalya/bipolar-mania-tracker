@@ -133,7 +133,7 @@ const BlockDetail = () => {
   };
 
   const handleSaveBlock = async () => {
-    if (!user || futureDate) return;
+    if (!user || futureDate || isReadOnly) return;
     const actionTag = entryId ? 'UPDATE_ENTRY' : 'SAVE_ENTRY';
     console.log(actionTag, { blockId: block.id, scores, total });
     setSaving(true);
