@@ -47,12 +47,12 @@ const BlockDetail = () => {
 
   // Load existing answers
   useEffect(() => {
-    if (!user || !block) return;
+    if (!targetUserId || !block) return;
     const load = async () => {
       const { data: entry, error: entryError } = await supabase
         .from('entries')
         .select('id, last_edited_at')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .eq('entry_date', dateStr)
         .maybeSingle();
 
