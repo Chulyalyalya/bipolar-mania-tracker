@@ -262,6 +262,34 @@ const Settings = () => {
         )}
       </div>
 
+      {role === 'doctor' && (
+        <div className="glass-card p-5 space-y-3">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+            Подключенные пациенты
+          </p>
+          {loadingPatients ? (
+            <p className="text-sm text-muted-foreground">Загрузка…</p>
+          ) : linkedPatients.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Нет подключённых пациентов. Поделитесь своим кодом врача.
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              {linkedPatients.map((p) => (
+                <div
+                  key={p.patientId}
+                  className="flex items-center justify-between text-sm cursor-pointer hover:bg-card/60 rounded-xl px-2 py-1.5 -mx-2 transition-colors"
+                  onClick={() => navigate(`/patient/${p.patientId}`)}
+                >
+                  <span>{p.fullName}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {role === 'patient' && (
         <>
           <button
