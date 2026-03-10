@@ -93,7 +93,7 @@ const BlockDetail = () => {
 
   // Load chart data — read block sums directly from entries table
   const loadChart = useCallback(async () => {
-    if (!user || !block) return;
+    if (!targetUserId || !block) return;
     const range = RANGES[rangeIdx];
     const from = format(subDays(new Date(), range.days), 'yyyy-MM-dd');
 
