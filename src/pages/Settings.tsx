@@ -32,6 +32,11 @@ interface LinkedDoctor {
   doctorCode: string | null;
 }
 
+interface LinkedPatient {
+  patientId: string;
+  fullName: string;
+}
+
 const Settings = () => {
   const { profile, role, user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -44,6 +49,9 @@ const Settings = () => {
   const [loadingDoctors, setLoadingDoctors] = useState(false);
 
   const [removingDoctor, setRemovingDoctor] = useState<LinkedDoctor | null>(null);
+
+  const [linkedPatients, setLinkedPatients] = useState<LinkedPatient[]>([]);
+  const [loadingPatients, setLoadingPatients] = useState(false);
 
   const fetchLinkedDoctors = useCallback(async () => {
     if (!user || role !== 'patient') return;
