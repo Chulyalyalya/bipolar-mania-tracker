@@ -39,13 +39,13 @@ const MedicationTracker = () => {
         .eq('user_id', user.id),
     ]);
 
-    const track = trackRes.data as any;
+    const track = trackRes.data;
     setMorningTaken(track?.morning_taken ?? false);
     setEveningTaken(track?.evening_taken ?? false);
 
-    const meds = (medsRes.data as any[]) ?? [];
-    setMorningMeds(meds.filter((m: any) => m.period === 'morning'));
-    setEveningMeds(meds.filter((m: any) => m.period === 'evening'));
+    const meds = medsRes.data ?? [];
+    setMorningMeds(meds.filter((m) => m.period === 'morning'));
+    setEveningMeds(meds.filter((m) => m.period === 'evening'));
     setLoading(false);
   }, [user, dateStr]);
 
