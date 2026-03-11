@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,46 +13,130 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const STORAGE_KEY = 'doctor_link_dismissed';
-
 const DoctorLinkModal = () => {
-  const { user, role } = useAuth();
+  const { user, role, refreshProfile } = useAuth();
   const [doctorCode, setDoctorCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const [codeError, setCodeError] = useState('');
 
-  const dismissed = localStorage.getItem(STORAGE_KEY) === 'true';
-  const [open, setOpen] = useState(!dismissed);
+  // Check DB flag on mount
+  useEffect(() => {
+    if (!user || role !== 'patient') {
+      setChecked(true);
+      return;
+    }
 
-  if (role !== 'patient' || dismissed) return null;
+    const check = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('doctor_onboarding_seen')
+        .eq('id', user.id)
+        .single();
+
+      if (data && !(data as any).doctor_onboarding_seen) {
+        // Also check if patient already has a doctor
+        const { data: links } = await supabase
+          .from('doctor_patient_links')
+          .select('id')
+          .eq('patient_user_id', user.id)
+          .eq('status', 'active' as any)
+          .limit(1);
+
+        if (!links?.length) {
+          setOpen(true);
+        } else {
+          // Has doctor already, mark as seen
+          await markSeen();
+        }
+      }
+      setChecked(true);
+    };
+
+    check();
+  }, [user, role]);
+
+  if (!checked || role !== 'patient' || !open) return null;
+
+  const markSeen = async () => {
+    if (!user) return;
+    await supabase
+      .from('profiles')
+      .update({ doctor_onboarding_seen: true } as any)
+      .eq('id', user.id);
+  };
 
   const handleLink = async () => {
-    if (!user || doctorCode.length !== 9) return;
+    if (!user) return;
+    const code = doctorCode.trim().toUpperCase();
+    if (code.length !== 9) {
+      setCodeError('Код должен содержать 9 символов');
+      return;
+    }
+    setCodeError('');
     setLoading(true);
     try {
+      // Find doctor by code and verify role
       const { data: doctor, error: findErr } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('doctor_code', doctorCode.toUpperCase())
+        .select('id, role, full_name')
+        .eq('doctor_code', code)
         .single();
+
       if (findErr || !doctor) {
-        toast.error('Врач не найден');
+        setCodeError('Врач с таким кодом не найден');
         return;
       }
-      const { error: linkErr } = await supabase
+
+      if ((doctor as any).role !== 'doctor') {
+        setCodeError('Врач с таким кодом не найден');
+        return;
+      }
+
+      // Check for existing link
+      const { data: existing } = await supabase
         .from('doctor_patient_links')
-        .insert({ doctor_user_id: doctor.id, patient_user_id: user.id });
-      if (linkErr) throw linkErr;
-      toast.success('Врач добавлен');
-      handleDismiss();
+        .select('id, status')
+        .eq('doctor_user_id', (doctor as any).id)
+        .eq('patient_user_id', user.id)
+        .limit(1);
+
+      if (existing?.length) {
+        const link = existing[0];
+        if ((link as any).status === 'active') {
+          setCodeError('Этот врач уже подключён');
+          return;
+        }
+        // Reactivate revoked link
+        const { error: updateErr } = await supabase
+          .from('doctor_patient_links')
+          .update({ status: 'active' as any })
+          .eq('id', link.id);
+        if (updateErr) throw updateErr;
+      } else {
+        const { error: linkErr } = await supabase
+          .from('doctor_patient_links')
+          .insert({
+            doctor_user_id: (doctor as any).id,
+            patient_user_id: user.id,
+            status: 'active' as any,
+          });
+        if (linkErr) throw linkErr;
+      }
+
+      toast.success(`Врач ${(doctor as any).full_name || ''} подключён`);
+      await markSeen();
+      setOpen(false);
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message || 'Ошибка подключения');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDismiss = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+  const handleDismiss = async () => {
+    await markSeen();
     setOpen(false);
   };
 
@@ -70,18 +154,24 @@ const DoctorLinkModal = () => {
             <Label>Код врача (9 символов)</Label>
             <Input
               value={doctorCode}
-              onChange={(e) => setDoctorCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                setDoctorCode(e.target.value.toUpperCase());
+                setCodeError('');
+              }}
               maxLength={9}
               placeholder="A9X2KQ7PZ"
-              className="font-mono tracking-widest"
+              className={`font-mono tracking-widest ${codeError ? 'border-destructive' : ''}`}
             />
+            {codeError && (
+              <p className="text-[11px] text-destructive mt-1">{codeError}</p>
+            )}
           </div>
           <Button
             className="w-full"
             onClick={handleLink}
-            disabled={loading || doctorCode.length !== 9}
+            disabled={loading || doctorCode.trim().length !== 9}
           >
-            Подключить
+            {loading ? 'Подключение…' : 'Подключить'}
           </Button>
           <Button
             variant="ghost"
