@@ -5,11 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { isFuture, isToday } from 'date-fns';
 
-interface MedicationRow {
+type MedicationRow = {
   id: string;
   medication_name: string;
   dosage: string | null;
-}
+  period: string;
+};
 
 const MedicationTracker = () => {
   const { user } = useAuth();
