@@ -28,13 +28,13 @@ const MedicationTracker = () => {
 
     const [trackRes, medsRes] = await Promise.all([
       supabase
-        .from('medication_tracking' as any)
+        .from('medication_tracking')
         .select('morning_taken, evening_taken')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
         .maybeSingle(),
       supabase
-        .from('medications' as any)
+        .from('medications')
         .select('id, period, medication_name, dosage')
         .eq('user_id', user.id),
     ]);
