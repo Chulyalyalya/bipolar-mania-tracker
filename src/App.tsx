@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DateProvider } from "@/contexts/DateContext";
 import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
+import DoctorLinkModal from "./components/DoctorLinkModal";
 import ResetPassword from "./pages/ResetPassword";
 import PatientHome from "./pages/PatientHome";
 import BlockDetail from "./pages/BlockDetail";
@@ -42,11 +42,11 @@ const AppRoutes = () => {
   }
 
   if (!role) {
+    // Profile exists but role missing — show loading, profile trigger may still be processing
     return (
-      <Routes>
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="*" element={<Navigate to="/onboarding" replace />} />
-      </Routes>
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-muted-foreground">Настройка профиля…</p>
+      </div>
     );
   }
 
@@ -64,6 +64,7 @@ const AppRoutes = () => {
           </Routes>
         </main>
         <BottomNav />
+        <DoctorLinkModal />
       </>
     );
   }
