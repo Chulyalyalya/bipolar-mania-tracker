@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DateProvider } from "@/contexts/DateContext";
 import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
+import DoctorLinkModal from "./components/DoctorLinkModal";
 import ResetPassword from "./pages/ResetPassword";
 import PatientHome from "./pages/PatientHome";
 import BlockDetail from "./pages/BlockDetail";
