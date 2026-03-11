@@ -64,6 +64,7 @@ const AppRoutes = () => {
           </Routes>
         </main>
         <BottomNav />
+        <DoctorLinkModal />
       </>
     );
   }
