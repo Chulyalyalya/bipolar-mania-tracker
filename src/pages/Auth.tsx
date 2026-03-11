@@ -293,20 +293,12 @@ const Auth = () => {
         });
         if (error) throw error;
 
-        // If we got a session (auto-confirmed), write profile + role now
         if (result.session && result.user) {
-          const { error: profileErr } = await supabase
-            .from('profiles')
-            .update({ full_name: data.fullName, role: data.role })
-            .eq('id', result.user.id);
-          if (profileErr) console.warn('Profile update:', profileErr.message);
-
-          const { error: roleErr } = await supabase
-            .from('user_roles')
-            .insert({ user_id: result.user.id, role: data.role });
-          if (roleErr) console.warn('Role insert:', roleErr.message);
+          // Auto-confirmed: triggers already created profile + user_roles + doctor_code
+          // AuthContext onAuthStateChange will pick up the session
+          toast.success('Регистрация завершена');
         } else {
-          // Email confirmation required — trigger handles profile creation
+          // Email confirmation required
           setConfirmationEmail(data.email);
           setShowConfirmation(true);
         }
