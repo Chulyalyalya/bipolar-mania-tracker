@@ -42,11 +42,11 @@ const AppRoutes = () => {
   }
 
   if (!role) {
+    // Profile exists but role missing — show loading, profile trigger may still be processing
     return (
-      <Routes>
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="*" element={<Navigate to="/onboarding" replace />} />
-      </Routes>
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-muted-foreground">Настройка профиля…</p>
+      </div>
     );
   }
 

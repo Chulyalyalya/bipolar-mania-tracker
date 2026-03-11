@@ -29,12 +29,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const fetchProfileAndRole = async (userId: string) => {
-    const [profileRes, roleRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).single() as any,
-      supabase.from('user_roles').select('role').eq('user_id', userId).single() as any,
-    ]);
-    setProfile(profileRes.data as Profile | null);
-    setRole((roleRes.data as any)?.role ?? null);
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    const p = profileData as Profile | null;
+    setProfile(p);
+    setRole((p?.role as AppRole) ?? null);
   };
 
   const refreshProfile = async () => {
