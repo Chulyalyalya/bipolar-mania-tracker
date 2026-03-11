@@ -197,14 +197,15 @@ const BlockDetail = () => {
       const riskCount = Object.values(blockSums).filter((v) => v > 4).length;
 
       // Update entries row directly
-      const { error: updateSumsError } = await (supabase
+      const updatePayload: Record<string, number | string> = {
+        ...blockSums,
+        total_risk_blocks_count: riskCount,
+        last_edited_at: now,
+      };
+      const { error: updateSumsError } = await supabase
         .from('entries')
-        .update({
-          ...blockSums,
-          total_risk_blocks_count: riskCount,
-          last_edited_at: now,
-        })
-        .eq('id', eid!) as any);
+        .update(updatePayload as any)
+        .eq('id', eid!);
       if (updateSumsError) throw updateSumsError;
 
       setLastEdited(now);
