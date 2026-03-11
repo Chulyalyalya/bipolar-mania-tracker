@@ -58,26 +58,26 @@ const MedicationTracker = () => {
     if (field === 'morning_taken') setMorningTaken(newVal);
     else setEveningTaken(newVal);
 
-    const { data: existing } = await (supabase
-      .from('medication_tracking' as any)
+    const { data: existing } = await supabase
+      .from('medication_tracking')
       .select('id')
       .eq('user_id', user.id)
       .eq('entry_date', dateStr)
-      .maybeSingle() as any);
+      .maybeSingle();
 
     if (existing) {
-      await (supabase
-        .from('medication_tracking' as any)
-        .update({ [field]: newVal, updated_at: new Date().toISOString() } as any)
-        .eq('id', existing.id) as any);
+      await supabase
+        .from('medication_tracking')
+        .update({ [field]: newVal, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
     } else {
-      await (supabase
-        .from('medication_tracking' as any)
+      await supabase
+        .from('medication_tracking')
         .insert({
           user_id: user.id,
           entry_date: dateStr,
           [field]: newVal,
-        } as any) as any);
+        });
     }
   };
 

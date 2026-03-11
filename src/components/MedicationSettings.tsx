@@ -84,10 +84,10 @@ const MedicationSettings = () => {
 
   const handleDelete = async () => {
     if (!deletingMed) return;
-    const { error } = await (supabase
-      .from('medications' as any)
+    const { error } = await supabase
+      .from('medications')
       .delete()
-      .eq('id', deletingMed.id) as any);
+      .eq('id', deletingMed.id);
 
     if (error) {
       console.error('MED_DELETE_ERROR', error);
