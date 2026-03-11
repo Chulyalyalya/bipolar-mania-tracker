@@ -235,6 +235,7 @@ const Settings = () => {
         <div className="space-y-1.5 text-sm">
           <p><span className="text-muted-foreground">Имя:</span> {profile?.full_name || '—'}</p>
           <p><span className="text-muted-foreground">Роль:</span> {role === 'doctor' ? 'Врач' : 'Пациент'}</p>
+          {user?.email && <p><span className="text-muted-foreground">Email:</span> {user.email}</p>}
           {role === 'doctor' && profile?.doctor_code && (
             <p><span className="text-muted-foreground">Код врача:</span> <span className="font-mono">{profile.doctor_code}</span></p>
           )}
