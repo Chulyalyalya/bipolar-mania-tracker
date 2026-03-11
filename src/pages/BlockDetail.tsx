@@ -142,22 +142,22 @@ const BlockDetail = () => {
       const now = new Date().toISOString();
 
       if (!eid) {
-        const { data, error } = await (supabase
+        const { data, error } = await supabase
           .from('entries')
           .upsert(
             { user_id: user.id, entry_date: dateStr, entered_at: now, last_edited_at: now },
             { onConflict: 'user_id,entry_date' }
           )
           .select('id')
-          .single() as any);
+          .single();
         if (error || !data?.id) throw error || new Error('Не удалось создать запись');
         eid = data.id;
         setEntryId(eid);
       } else {
-        const { error: updateEntryError } = await (supabase
+        const { error: updateEntryError } = await supabase
           .from('entries')
           .update({ last_edited_at: now })
-          .eq('id', eid) as any);
+          .eq('id', eid);
         if (updateEntryError) throw updateEntryError;
       }
 
