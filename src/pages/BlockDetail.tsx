@@ -161,11 +161,11 @@ const BlockDetail = () => {
         if (updateEntryError) throw updateEntryError;
       }
 
-      const { error: deleteAnswersError } = await (supabase
+      const { error: deleteAnswersError } = await supabase
         .from('mania_answers')
         .delete()
         .eq('entry_id', eid!)
-        .eq('block_id', block.id) as any);
+        .eq('block_id', block.id);
       if (deleteAnswersError) throw deleteAnswersError;
 
       const rows = scores.map((score, qIdx) => ({
