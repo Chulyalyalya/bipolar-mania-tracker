@@ -5,11 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { isFuture, isToday } from 'date-fns';
 
-interface MedicationRow {
+type MedicationRow = {
   id: string;
   medication_name: string;
   dosage: string | null;
-}
+  period: string;
+};
 
 const MedicationTracker = () => {
   const { user } = useAuth();
@@ -28,24 +29,24 @@ const MedicationTracker = () => {
 
     const [trackRes, medsRes] = await Promise.all([
       supabase
-        .from('medication_tracking' as any)
+        .from('medication_tracking')
         .select('morning_taken, evening_taken')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
         .maybeSingle(),
       supabase
-        .from('medications' as any)
+        .from('medications')
         .select('id, period, medication_name, dosage')
         .eq('user_id', user.id),
     ]);
 
-    const track = trackRes.data as any;
+    const track = trackRes.data;
     setMorningTaken(track?.morning_taken ?? false);
     setEveningTaken(track?.evening_taken ?? false);
 
-    const meds = (medsRes.data as any[]) ?? [];
-    setMorningMeds(meds.filter((m: any) => m.period === 'morning'));
-    setEveningMeds(meds.filter((m: any) => m.period === 'evening'));
+    const meds = medsRes.data ?? [];
+    setMorningMeds(meds.filter((m) => m.period === 'morning'));
+    setEveningMeds(meds.filter((m) => m.period === 'evening'));
     setLoading(false);
   }, [user, dateStr]);
 
@@ -58,30 +59,28 @@ const MedicationTracker = () => {
     if (field === 'morning_taken') setMorningTaken(newVal);
     else setEveningTaken(newVal);
 
-    const { data: existing } = await (supabase
-      .from('medication_tracking' as any)
+    const { data: existing } = await supabase
+      .from('medication_tracking')
       .select('id')
       .eq('user_id', user.id)
       .eq('entry_date', dateStr)
-      .maybeSingle() as any);
+      .maybeSingle();
 
     if (existing) {
-      await (supabase
-        .from('medication_tracking' as any)
-        .update({ [field]: newVal, updated_at: new Date().toISOString() } as any)
-        .eq('id', existing.id) as any);
+      await supabase
+        .from('medication_tracking')
+        .update({ [field]: newVal, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
     } else {
-      await (supabase
-        .from('medication_tracking' as any)
+      await supabase
+        .from('medication_tracking')
         .insert({
           user_id: user.id,
           entry_date: dateStr,
           [field]: newVal,
-        } as any) as any);
+        });
     }
   };
-
-  if (loading) return null;
 
   return (
     <div className="mt-4">

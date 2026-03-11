@@ -40,11 +40,11 @@ const MedicationSettings = () => {
 
   const fetchMeds = useCallback(async () => {
     if (!user) return;
-    const { data } = await (supabase
-      .from('medications' as any)
+    const { data } = await supabase
+      .from('medications')
       .select('id, period, medication_name, dosage')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: true }) as any);
+      .order('created_at', { ascending: true });
     setMeds((data as Med[]) ?? []);
   }, [user]);
 
@@ -60,18 +60,20 @@ const MedicationSettings = () => {
   const handleSave = async () => {
     if (!user || !medName.trim()) return;
     setSaving(true);
-    const { error } = await (supabase
-      .from('medications' as any)
+    const { error } = await supabase
+      .from('medications')
       .insert({
         user_id: user.id,
         period: sheetPeriod,
         medication_name: medName.trim(),
         dosage: medDosage.trim() || null,
-      } as any) as any);
+      });
+
+    console.log('MED_SAVE_RESULT', { error });
 
     if (error) {
       console.error('MED_SAVE_ERROR', error);
-      toast.error('Ошибка сохранения');
+      toast.error(`Ошибка сохранения: ${error.message}`);
     } else {
       toast.success('Лекарство добавлено');
       setSheetOpen(false);
@@ -82,10 +84,10 @@ const MedicationSettings = () => {
 
   const handleDelete = async () => {
     if (!deletingMed) return;
-    const { error } = await (supabase
-      .from('medications' as any)
+    const { error } = await supabase
+      .from('medications')
       .delete()
-      .eq('id', deletingMed.id) as any);
+      .eq('id', deletingMed.id);
 
     if (error) {
       console.error('MED_DELETE_ERROR', error);
