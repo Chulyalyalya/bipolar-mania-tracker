@@ -40,11 +40,11 @@ const MedicationSettings = () => {
 
   const fetchMeds = useCallback(async () => {
     if (!user) return;
-    const { data } = await (supabase
-      .from('medications' as any)
+    const { data } = await supabase
+      .from('medications')
       .select('id, period, medication_name, dosage')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: true }) as any);
+      .order('created_at', { ascending: true });
     setMeds((data as Med[]) ?? []);
   }, [user]);
 
