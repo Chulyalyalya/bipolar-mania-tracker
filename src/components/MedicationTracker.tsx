@@ -81,8 +81,6 @@ const MedicationTracker = () => {
     }
   };
 
-  if (loading) return null;
-
   return (
     <div className="mt-4">
       <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">

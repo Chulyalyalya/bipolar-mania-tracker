@@ -60,18 +60,20 @@ const MedicationSettings = () => {
   const handleSave = async () => {
     if (!user || !medName.trim()) return;
     setSaving(true);
-    const { error } = await (supabase
-      .from('medications' as any)
+    const { error } = await supabase
+      .from('medications')
       .insert({
         user_id: user.id,
         period: sheetPeriod,
         medication_name: medName.trim(),
         dosage: medDosage.trim() || null,
-      } as any) as any);
+      });
+
+    console.log('MED_SAVE_RESULT', { error });
 
     if (error) {
       console.error('MED_SAVE_ERROR', error);
-      toast.error('Ошибка сохранения');
+      toast.error(`Ошибка сохранения: ${error.message}`);
     } else {
       toast.success('Лекарство добавлено');
       setSheetOpen(false);
