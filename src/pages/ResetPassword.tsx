@@ -44,6 +44,8 @@ const ResetPassword = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       toast.success('Пароль обновлён');
+      console.log('REDIRECT TARGET', '/auth');
+      console.log('REDIRECT SOURCE', { source: 'ResetPassword.handleSubmit' });
       navigate('/auth');
     } catch (err: any) {
       console.error('Password update error:', err);
@@ -62,7 +64,11 @@ const ResetPassword = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">{sessionError}</p>
-            <Button className="w-full" onClick={() => navigate('/auth')}>
+            <Button className="w-full" onClick={() => {
+              console.log('REDIRECT TARGET', '/auth');
+              console.log('REDIRECT SOURCE', { source: 'ResetPassword.errorCta' });
+              navigate('/auth');
+            }}>
               Вернуться ко входу
             </Button>
           </CardContent>

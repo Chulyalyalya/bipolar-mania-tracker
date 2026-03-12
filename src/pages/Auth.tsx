@@ -283,11 +283,15 @@ const Auth = () => {
     async (data: {email: string;password: string;fullName: string;role: AppRole;}) => {
       setLoading(true);
       try {
+        const emailRedirectTo = window.location.origin;
+        console.log('REDIRECT TARGET', emailRedirectTo);
+        console.log('REDIRECT SOURCE', { source: 'Auth.handleRegister.emailRedirectTo' });
+
         const { data: result, error } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo,
             data: { full_name: data.fullName, role: data.role }
           }
         });
@@ -313,8 +317,12 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      const resetRedirectTo = `${window.location.origin}/reset-password`;
+      console.log('REDIRECT TARGET', resetRedirectTo);
+      console.log('REDIRECT SOURCE', { source: 'Auth.handleForgot.redirectTo' });
+
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: resetRedirectTo
       });
       if (error) throw error;
       toast.success('Ссылка для сброса отправлена на почту');
