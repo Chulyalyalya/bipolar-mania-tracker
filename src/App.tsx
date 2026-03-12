@@ -13,19 +13,33 @@ import BlockDetail from "./pages/BlockDetail";
 import DoctorHome from "./pages/DoctorHome";
 import PatientDetailDoctor from "./pages/PatientDetailDoctor";
 import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
 import GlobalHeader from "./components/GlobalHeader";
 import DateSelector from "./components/DateSelector";
 import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
+const RedirectWithTrace = ({ to, source }: { to: string; source: string }) => {
+  const location = useLocation();
+  console.log("REDIRECT TARGET", to);
+  console.log("REDIRECT SOURCE", { source, from: location.pathname });
+  return <Navigate to={to} replace />;
+};
+
 const AppRoutes = () => {
   const { session, role, loading } = useAuth();
   const location = useLocation();
 
   const hasSession = !!session;
-  console.log("ROUTE DECISION:", { hasSession, role, currentPath: location.pathname });
+
+  if (!loading) {
+    console.log("BOOTSTRAP AUTH CHECK", {
+      session: hasSession,
+      role,
+      pathname: window.location.pathname,
+    });
+    console.log("ROUTE DECISION:", { hasSession, role, currentPath: location.pathname });
+  }
 
   if (loading) {
     return (
@@ -35,41 +49,40 @@ const AppRoutes = () => {
     );
   }
 
-  // Not authenticated
   if (!session) {
     return (
       <Routes>
+        <Route path="/" element={<RedirectWithTrace to="/auth" source="AppRoutes:no_session_root" />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/auth" replace />} />
+        <Route path="*" element={<RedirectWithTrace to="/auth" source="AppRoutes:no_session_fallback" />} />
       </Routes>
     );
   }
 
-  // Authenticated but role not yet resolved — brief wait, never infinite
-  if (!role) {
+  if (role !== "patient" && role !== "doctor") {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Настройка профиля…</p>
-      </div>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<RedirectWithTrace to="/auth" source="AppRoutes:invalid_role_fallback" />} />
+      </Routes>
     );
   }
 
-  // Patient layout
-  if (role === 'patient') {
+  if (role === "patient") {
     return (
       <>
         <GlobalHeader />
         <DateSelector />
         <main className="relative isolate min-h-[calc(100vh-120px)]">
           <Routes>
+            <Route path="/" element={<RedirectWithTrace to="/dashboard" source="AppRoutes:patient_root" />} />
             <Route path="/dashboard" element={<PatientHome />} />
             <Route path="/block/:blockId" element={<BlockDetail />} />
             <Route path="/settings" element={<Settings />} />
-            {/* Redirect root and any unknown path to /dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/auth" element={<RedirectWithTrace to="/dashboard" source="AppRoutes:patient_auth_path" />} />
+            <Route path="*" element={<RedirectWithTrace to="/dashboard" source="AppRoutes:patient_fallback" />} />
           </Routes>
         </main>
         <BottomNav />
@@ -78,21 +91,19 @@ const AppRoutes = () => {
     );
   }
 
-  // Doctor layout
   return (
     <>
       <GlobalHeader />
       <DateSelector />
       <main className="relative isolate min-h-[calc(100vh-120px)]">
         <Routes>
+          <Route path="/" element={<RedirectWithTrace to="/doctor" source="AppRoutes:doctor_root" />} />
           <Route path="/doctor" element={<DoctorHome />} />
           <Route path="/patient/:patientId" element={<PatientDetailDoctor />} />
           <Route path="/patient/:patientId/block/:blockId" element={<BlockDetail />} />
           <Route path="/settings" element={<Settings />} />
-          {/* Redirect root and any unknown path to /doctor */}
-          <Route path="/" element={<Navigate to="/doctor" replace />} />
-          <Route path="/auth" element={<Navigate to="/doctor" replace />} />
-          <Route path="*" element={<Navigate to="/doctor" replace />} />
+          <Route path="/auth" element={<RedirectWithTrace to="/doctor" source="AppRoutes:doctor_auth_path" />} />
+          <Route path="*" element={<RedirectWithTrace to="/doctor" source="AppRoutes:doctor_fallback" />} />
         </Routes>
       </main>
       <BottomNav />
@@ -117,3 +128,4 @@ const App = () => (
 );
 
 export default App;
+

@@ -216,6 +216,8 @@ const Settings = () => {
       console.log('LOGOUT_CLICK');
       console.log('LOGOUT_START');
       await signOut();
+      console.log('REDIRECT TARGET', '/auth');
+      console.log('REDIRECT SOURCE', { source: 'Settings.handleLogout' });
       navigate('/auth', { replace: true });
       console.log('LOGOUT_SUCCESS');
     } catch (error) {

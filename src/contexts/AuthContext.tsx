@@ -30,25 +30,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resolvedRef = useRef(false);
 
   const fetchProfileAndRole = async (userId: string) => {
-    // Fetch profile
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
+
+    if (profileError) {
+      console.error('AUTH_PROFILE_FETCH_ERROR', profileError);
+    }
+
     const p = profileData as Profile | null;
     setProfile(p);
 
-    // Fetch role from user_roles table (authoritative source)
-    const { data: roleData } = await supabase
+    const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
       .limit(1)
-      .single();
+      .maybeSingle();
+
+    if (roleError) {
+      console.error('AUTH_ROLE_FETCH_ERROR', roleError);
+    }
 
     const resolvedRole = (roleData?.role as AppRole) ?? (p?.role as AppRole) ?? null;
-    console.log('AUTH_ROLE_RESOLVED:', { userId, role: resolvedRole, fromUserRoles: !!roleData, fromProfile: p?.role });
+    console.log('AUTH_ROLE_RESOLVED:', {
+      userId,
+      role: resolvedRole,
+      fromUserRoles: !!roleData,
+      fromProfile: p?.role,
+    });
     setRole(resolvedRole);
   };
 
@@ -57,36 +69,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('AUTH_STATE_CHANGE:', _event, !!session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfileAndRole(session.user.id);
-      } else {
+    let isMounted = true;
+
+    const resolveSession = async (nextSession: Session | null, source: string) => {
+      try {
+        setSession(nextSession);
+        setUser(nextSession?.user ?? null);
+
+        if (nextSession?.user) {
+          await fetchProfileAndRole(nextSession.user.id);
+        } else {
+          setProfile(null);
+          setRole(null);
+        }
+      } catch (error) {
+        console.error('AUTH_RESOLVE_ERROR', { source, error });
         setProfile(null);
         setRole(null);
-      }
-      setLoading(false);
-      resolvedRef.current = true;
-    });
-
-    // Then get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      // Only process if onAuthStateChange hasn't already resolved
-      if (!resolvedRef.current) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfileAndRole(session.user.id);
-        }
+      } finally {
+        if (!isMounted) return;
         setLoading(false);
         resolvedRef.current = true;
+        console.log('AUTH_RESOLVE_DONE', { source, hasSession: !!nextSession });
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      console.log('AUTH_STATE_CHANGE:', _event, !!nextSession);
+      void resolveSession(nextSession, `onAuthStateChange:${_event}`);
+    });
+
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (!resolvedRef.current) {
+        console.log('AUTH_GET_SESSION_BOOTSTRAP', !!initialSession);
+        void resolveSession(initialSession, 'getSession');
       }
     });
 
-    // Safety timeout — never stay loading forever
     const timeout = setTimeout(() => {
       if (!resolvedRef.current) {
         console.warn('AUTH_TIMEOUT: forcing loading=false after 8s');
@@ -96,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 8000);
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
@@ -119,3 +139,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
+
