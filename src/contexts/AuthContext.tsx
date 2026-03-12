@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { AppRole, Profile } from '@/types';
@@ -27,8 +27,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const resolvedRef = useRef(false);
 
   const fetchProfileAndRole = async (userId: string) => {
+    // Fetch profile
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
@@ -36,7 +38,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
     const p = profileData as Profile | null;
     setProfile(p);
-    setRole((p?.role as AppRole) ?? null);
+
+    // Fetch role from user_roles table (authoritative source)
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .limit(1)
+      .single();
+
+    const resolvedRole = (roleData?.role as AppRole) ?? (p?.role as AppRole) ?? null;
+    console.log('AUTH_ROLE_RESOLVED:', { userId, role: resolvedRole, fromUserRoles: !!roleData, fromProfile: p?.role });
+    setRole(resolvedRole);
   };
 
   const refreshProfile = async () => {
@@ -44,7 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('AUTH_STATE_CHANGE:', _event, !!session);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -54,18 +69,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRole(null);
       }
       setLoading(false);
+      resolvedRef.current = true;
     });
 
+    // Then get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfileAndRole(session.user.id);
+      // Only process if onAuthStateChange hasn't already resolved
+      if (!resolvedRef.current) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchProfileAndRole(session.user.id);
+        }
+        setLoading(false);
+        resolvedRef.current = true;
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Safety timeout — never stay loading forever
+    const timeout = setTimeout(() => {
+      if (!resolvedRef.current) {
+        console.warn('AUTH_TIMEOUT: forcing loading=false after 8s');
+        setLoading(false);
+        resolvedRef.current = true;
+      }
+    }, 8000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const signOut = async () => {

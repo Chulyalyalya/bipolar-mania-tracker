@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DateProvider } from "@/contexts/DateContext";
 import Auth from "./pages/Auth";
@@ -22,6 +22,10 @@ const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   const { session, role, loading } = useAuth();
+  const location = useLocation();
+
+  const hasSession = !!session;
+  console.log("ROUTE DECISION:", { hasSession, role, currentPath: location.pathname });
 
   if (loading) {
     return (
@@ -31,6 +35,7 @@ const AppRoutes = () => {
     );
   }
 
+  // Not authenticated
   if (!session) {
     return (
       <Routes>
@@ -41,8 +46,8 @@ const AppRoutes = () => {
     );
   }
 
+  // Authenticated but role not yet resolved — brief wait, never infinite
   if (!role) {
-    // Profile exists but role missing — show loading, profile trigger may still be processing
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-sm text-muted-foreground">Настройка профиля…</p>
@@ -50,6 +55,7 @@ const AppRoutes = () => {
     );
   }
 
+  // Patient layout
   if (role === 'patient') {
     return (
       <>
@@ -57,10 +63,13 @@ const AppRoutes = () => {
         <DateSelector />
         <main className="relative isolate min-h-[calc(100vh-120px)]">
           <Routes>
-            <Route path="/" element={<PatientHome />} />
+            <Route path="/dashboard" element={<PatientHome />} />
             <Route path="/block/:blockId" element={<BlockDetail />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Redirect root and any unknown path to /dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>
         <BottomNav />
@@ -69,18 +78,21 @@ const AppRoutes = () => {
     );
   }
 
-  // Doctor layout — same shell as patient
+  // Doctor layout
   return (
     <>
       <GlobalHeader />
       <DateSelector />
       <main className="relative isolate min-h-[calc(100vh-120px)]">
         <Routes>
-          <Route path="/" element={<DoctorHome />} />
+          <Route path="/doctor" element={<DoctorHome />} />
           <Route path="/patient/:patientId" element={<PatientDetailDoctor />} />
           <Route path="/patient/:patientId/block/:blockId" element={<BlockDetail />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Redirect root and any unknown path to /doctor */}
+          <Route path="/" element={<Navigate to="/doctor" replace />} />
+          <Route path="/auth" element={<Navigate to="/doctor" replace />} />
+          <Route path="*" element={<Navigate to="/doctor" replace />} />
         </Routes>
       </main>
       <BottomNav />

@@ -297,7 +297,7 @@ const PatientDetailDoctor = () => {
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/doctor')}
           className="h-8 w-8 rounded-xl hover:bg-card/60 inline-flex items-center justify-center transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
