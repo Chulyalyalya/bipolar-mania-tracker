@@ -153,9 +153,45 @@ const PatientHome = () => {
 
         {/* Right column: blocks */}
         <div className="w-full md:w-3/4">
-          <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-            Mania Checker
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              Mania Checker
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  type="button"
+                  disabled={!hasData || futureDate || clearing}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] font-medium transition-all',
+                    'border border-border/30 bg-card/40 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30',
+                    'text-muted-foreground',
+                    (!hasData || futureDate || clearing) && 'opacity-40 pointer-events-none'
+                  )}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Очистить
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Очистить данные за выбранный день?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Будут удалены ответы по блокам, заметка дня и отметки приёма препаратов за этот день. Данные за другие дни сохранятся.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-xl">Отмена</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearDay}
+                    className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Да, очистить
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {BLOCKS.map((block) => {
               const sum = getBlockSum(block.id);
