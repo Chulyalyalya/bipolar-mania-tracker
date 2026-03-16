@@ -1,5 +1,5 @@
 import { useSelectedDate } from '@/contexts/DateContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { BLOCKS } from '@/lib/questions';
@@ -10,7 +10,19 @@ import DonutStreak from '@/components/DonutStreak';
 import DailyNotes from '@/components/DailyNotes';
 import MedicationTracker from '@/components/MedicationTracker';
 import SustainedActivationBanner from '@/components/SustainedActivationBanner';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const PatientHome = () => {
   const { user } = useAuth();
@@ -20,31 +32,87 @@ const PatientHome = () => {
   const navigate = useNavigate();
 
   const futureDate = isFuture(selectedDate) && !isToday(selectedDate);
+  const [clearing, setClearing] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!user) return;
-    const load = async () => {
+    const { data: entry } = await (supabase
+      .from('entries')
+      .select('id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum, total_risk_blocks_count')
+      .eq('user_id', user.id)
+      .eq('entry_date', dateStr)
+      .maybeSingle() as any);
+
+    if (entry) {
+      setBlockSums(entry);
+      const { data: answers } = await supabase
+        .from('mania_answers')
+        .select('block_id')
+        .eq('entry_id', entry.id);
+      setFilledBlocks(new Set(answers?.map((a) => a.block_id) ?? []));
+    } else {
+      setBlockSums(null);
+      setFilledBlocks(new Set());
+    }
+  }, [user, dateStr]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const hasData = blockSums !== null;
+
+  const handleClearDay = async () => {
+    if (!user) return;
+    setClearing(true);
+    try {
+      // 1. Get the entry for this date
       const { data: entry } = await (supabase
         .from('entries')
-        .select('id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum, total_risk_blocks_count')
+        .select('id')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
         .maybeSingle() as any);
 
       if (entry) {
-        setBlockSums(entry);
-        const { data: answers } = await supabase
+        // 2. Delete mania answers for this entry
+        await supabase
           .from('mania_answers')
-          .select('block_id')
+          .delete()
           .eq('entry_id', entry.id);
-        setFilledBlocks(new Set(answers?.map((a) => a.block_id) ?? []));
-      } else {
-        setBlockSums(null);
-        setFilledBlocks(new Set());
+
+        // 3. Reset entry sums, note, risk count
+        await (supabase
+          .from('entries')
+          .update({
+            block1_sum: 0,
+            block2_sum: 0,
+            block3_sum: 0,
+            block4_sum: 0,
+            block5_sum: 0,
+            block6_sum: 0,
+            block7_sum: 0,
+            total_risk_blocks_count: 0,
+            daily_note: null,
+            flags: {},
+          })
+          .eq('id', entry.id) as any);
       }
-    };
-    load();
-  }, [user, dateStr]);
+
+      // 4. Delete medication tracking for this date
+      await supabase
+        .from('medication_tracking')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('entry_date', dateStr);
+
+      toast.success('Данные за день очищены');
+      await load();
+    } catch (err) {
+      console.error('CLEAR_DAY_ERROR', err);
+      toast.error('Не удалось очистить данные');
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const getBlockSum = (blockId: number): number | null => {
     if (!blockSums) return null;
@@ -85,9 +153,45 @@ const PatientHome = () => {
 
         {/* Right column: blocks */}
         <div className="w-full md:w-3/4">
-          <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-            Mania Checker
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              Mania Checker
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  type="button"
+                  disabled={!hasData || futureDate || clearing}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-xl px-2.5 py-1 text-[11px] font-medium transition-all',
+                    'border border-border/30 bg-card/40 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30',
+                    'text-muted-foreground',
+                    (!hasData || futureDate || clearing) && 'opacity-40 pointer-events-none'
+                  )}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Очистить
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Очистить данные за выбранный день?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Будут удалены ответы по блокам, заметка дня и отметки приёма препаратов за этот день. Данные за другие дни сохранятся.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-xl">Отмена</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearDay}
+                    className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Да, очистить
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {BLOCKS.map((block) => {
               const sum = getBlockSum(block.id);
