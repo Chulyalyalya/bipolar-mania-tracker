@@ -32,31 +32,87 @@ const PatientHome = () => {
   const navigate = useNavigate();
 
   const futureDate = isFuture(selectedDate) && !isToday(selectedDate);
+  const [clearing, setClearing] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!user) return;
-    const load = async () => {
+    const { data: entry } = await (supabase
+      .from('entries')
+      .select('id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum, total_risk_blocks_count')
+      .eq('user_id', user.id)
+      .eq('entry_date', dateStr)
+      .maybeSingle() as any);
+
+    if (entry) {
+      setBlockSums(entry);
+      const { data: answers } = await supabase
+        .from('mania_answers')
+        .select('block_id')
+        .eq('entry_id', entry.id);
+      setFilledBlocks(new Set(answers?.map((a) => a.block_id) ?? []));
+    } else {
+      setBlockSums(null);
+      setFilledBlocks(new Set());
+    }
+  }, [user, dateStr]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const hasData = blockSums !== null;
+
+  const handleClearDay = async () => {
+    if (!user) return;
+    setClearing(true);
+    try {
+      // 1. Get the entry for this date
       const { data: entry } = await (supabase
         .from('entries')
-        .select('id, block1_sum, block2_sum, block3_sum, block4_sum, block5_sum, block6_sum, block7_sum, total_risk_blocks_count')
+        .select('id')
         .eq('user_id', user.id)
         .eq('entry_date', dateStr)
         .maybeSingle() as any);
 
       if (entry) {
-        setBlockSums(entry);
-        const { data: answers } = await supabase
+        // 2. Delete mania answers for this entry
+        await supabase
           .from('mania_answers')
-          .select('block_id')
+          .delete()
           .eq('entry_id', entry.id);
-        setFilledBlocks(new Set(answers?.map((a) => a.block_id) ?? []));
-      } else {
-        setBlockSums(null);
-        setFilledBlocks(new Set());
+
+        // 3. Reset entry sums, note, risk count
+        await (supabase
+          .from('entries')
+          .update({
+            block1_sum: 0,
+            block2_sum: 0,
+            block3_sum: 0,
+            block4_sum: 0,
+            block5_sum: 0,
+            block6_sum: 0,
+            block7_sum: 0,
+            total_risk_blocks_count: 0,
+            daily_note: null,
+            flags: {},
+          })
+          .eq('id', entry.id) as any);
       }
-    };
-    load();
-  }, [user, dateStr]);
+
+      // 4. Delete medication tracking for this date
+      await supabase
+        .from('medication_tracking')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('entry_date', dateStr);
+
+      toast.success('Данные за день очищены');
+      await load();
+    } catch (err) {
+      console.error('CLEAR_DAY_ERROR', err);
+      toast.error('Не удалось очистить данные');
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const getBlockSum = (blockId: number): number | null => {
     if (!blockSums) return null;
