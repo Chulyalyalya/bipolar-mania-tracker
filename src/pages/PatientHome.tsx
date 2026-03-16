@@ -1,5 +1,5 @@
 import { useSelectedDate } from '@/contexts/DateContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { BLOCKS } from '@/lib/questions';
@@ -10,7 +10,19 @@ import DonutStreak from '@/components/DonutStreak';
 import DailyNotes from '@/components/DailyNotes';
 import MedicationTracker from '@/components/MedicationTracker';
 import SustainedActivationBanner from '@/components/SustainedActivationBanner';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const PatientHome = () => {
   const { user } = useAuth();
